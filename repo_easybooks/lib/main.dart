@@ -4,6 +4,9 @@
 import 'package:flutter/material.dart';
 //import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:repo_easybooks/auth/auth_gate.dart';
+import 'package:repo_easybooks/login_page.dart';
+import 'package:repo_easybooks/widget_tree.dart';
 import 'dart:html' as html;
 
 import 'package:supabase_flutter/supabase_flutter.dart'; // web-only
@@ -58,9 +61,9 @@ class _MyAppState extends State<MyApp> {
       ),
 
       routes: {
-        //'/': (_) => const AuthGate(),
-        //'/login': (_) => const LoginPage(),
-        //'/home': (_) => const WidgetTree(),
+        '/': (_) => const AuthGate(),
+        '/login': (_) => const LoginPage(),
+        '/home': (_) => const WidgetTree(),
       },
     );
   }
