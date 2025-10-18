@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.10.3
   lottie: ^3.3.2
+  csv: ^6.0.0
+  file_saver: ^0.3.1
+  file_picker: ^10.3.3
+  html: ^0.15.6
+  mime: ^2.0.0
+  fl_chart: ^1.1.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
