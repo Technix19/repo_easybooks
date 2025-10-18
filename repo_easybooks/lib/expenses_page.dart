@@ -147,20 +147,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
   static const _accent = Color(0xFF6FFF43);
 
   InputDecoration _input(String label) => InputDecoration(
-    labelText: label,
-    labelStyle: const TextStyle(color: _muted2),
-    filled: true,
-    fillColor: const Color(0xFF242424),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: _thinBorder),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: _accent),
-    ),
-  );
+        labelText: label,
+        labelStyle: const TextStyle(color: _muted2),
+        filled: true,
+        fillColor: const Color(0xFF242424),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _thinBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _accent),
+        ),
+      );
 
   AlertDialog _dialogShell({
     required String title,
@@ -290,18 +291,17 @@ class _ExpensesPageState extends State<ExpensesPage> {
       );
     }
 
-    final normalized =
-        rows
-            .map<Map<String, dynamic>>(
-              (e) => {
-                'day': DateTime.parse(e['day'] as String),
-                'value': (e[valueKey] as num).toDouble(),
-              },
-            )
-            .toList()
-          ..sort(
-            (a, b) => (a['day'] as DateTime).compareTo(b['day'] as DateTime),
-          );
+    final normalized = rows
+        .map<Map<String, dynamic>>(
+          (e) => {
+            'day': DateTime.parse(e['day'] as String),
+            'value': (e[valueKey] as num).toDouble(),
+          },
+        )
+        .toList()
+      ..sort(
+        (a, b) => (a['day'] as DateTime).compareTo(b['day'] as DateTime),
+      );
 
     final dates = normalized.map((e) => e['day'] as DateTime).toList();
     final values = normalized.map((e) => e['value'] as double).toList();
@@ -315,9 +315,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
     final minX = 0.0;
     final maxX = dates.last.difference(baseDate).inDays.toDouble();
     final spanDays = (maxX - minX).round();
-    final xInterval = (spanDays <= 6)
-        ? 1.0
-        : (spanDays / 6).floorToDouble().clamp(1.0, 999.0);
+    final xInterval =
+        (spanDays <= 6) ? 1.0 : (spanDays / 6).floorToDouble().clamp(1.0, 999.0);
 
     String xLabel(double x) {
       final d = baseDate.add(Duration(days: x.round()));
@@ -373,12 +372,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
                 border: Border.all(color: const Color(0x22FFFFFF)),
               ),
               titlesData: FlTitlesData(
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -388,10 +385,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       padding: const EdgeInsets.only(right: 6),
                       child: Text(
                         value.toStringAsFixed(0),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white70,
-                        ),
+                        style:
+                            const TextStyle(fontSize: 10, color: Colors.white70),
                       ),
                     ),
                   ),
@@ -430,9 +425,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: gradientColors
-                          .map((c) => c.withOpacity(0.30))
-                          .toList(),
+                      colors:
+                          gradientColors.map((c) => c.withOpacity(0.30)).toList(),
                     ),
                   ),
                 ),
@@ -526,9 +520,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       height: 300,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.transparent),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(20),
-                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Row(
                         children: [
@@ -538,9 +531,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               decoration: BoxDecoration(
                                 color: _card,
                                 border: Border.all(color: _border),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(20),
-                                ),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(20)),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(12.0),
@@ -569,7 +561,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
 
                           const SizedBox(width: 15),
 
-                          // RIGHT: Date card + Add button (exact sizes)
+                          // RIGHT: Date card + Add/Export buttons
                           SizedBox(
                             width: 300,
                             height: 300,
@@ -582,9 +574,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                   decoration: BoxDecoration(
                                     color: _card,
                                     border: Border.all(color: _border),
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(20),
-                                    ),
+                                    borderRadius:
+                                        const BorderRadius.all(Radius.circular(20)),
                                   ),
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(20),
@@ -595,11 +586,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                         firstDate: DateTime(1900),
                                         lastDate: DateTime(2100),
                                         initialDateRange: DateTimeRange(
-                                          start: DateTime(
-                                            now.year,
-                                            now.month,
-                                            1,
-                                          ),
+                                          start: DateTime(now.year, now.month, 1),
                                           end: now,
                                         ),
                                       );
@@ -626,28 +613,23 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                           utcStartDate: utcStartDate!,
                                           utcEndDate: utcEndDate!,
                                         );
-                                        dailyExpensesFuture =
-                                            _fetchDailyExpenses(
-                                              utcStart: utcStartDate!,
-                                              utcEnd: utcEndDate!,
-                                            );
+                                        dailyExpensesFuture = _fetchDailyExpenses(
+                                          utcStart: utcStartDate!,
+                                          utcEnd: utcEndDate!,
+                                        );
                                       });
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 14,
-                                      ),
+                                          horizontal: 16, vertical: 14),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
                                           Row(
                                             children: const [
-                                              Icon(
-                                                Icons.calendar_month,
-                                                color: Colors.white,
-                                              ),
+                                              Icon(Icons.calendar_month,
+                                                  color: Colors.white),
                                               SizedBox(width: 10),
                                               Text(
                                                 "Date Range",
@@ -688,11 +670,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                     ((utcEndDate ??
                                                                 DateTime.now())
                                                             .toLocal())
-                                                        .subtract(
-                                                          const Duration(
-                                                            days: 1,
-                                                          ),
-                                                        ),
+                                                        .subtract(const Duration(
+                                                            days: 1)),
                                                   ),
                                                   textAlign: TextAlign.center,
                                                   style: const TextStyle(
@@ -712,13 +691,13 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                 ),
                                 const SizedBox(height: 22.5),
 
-                                // Add Record button (width 250, height ~55)
+                                // Buttons
                                 SizedBox(
                                   width: 250,
                                   height: 55,
                                   child: Row(
                                     children: [
-                                      // Add Record (unchanged)
+                                      // Add Record
                                       Expanded(
                                         child: FilledButton.icon(
                                           style: const ButtonStyle(
@@ -726,8 +705,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 MaterialStatePropertyAll(_card),
                                             foregroundColor:
                                                 MaterialStatePropertyAll(
-                                                  Colors.white,
-                                                ),
+                                                    Colors.white),
                                             shape: MaterialStatePropertyAll(
                                               RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.all(
@@ -756,6 +734,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
+                                      // Export
                                       Expanded(
                                         child: OutlinedButton.icon(
                                           style: OutlinedButton.styleFrom(
@@ -778,9 +757,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                   .auth
                                                   .currentUser;
                                               if (user == null) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
                                                   const SnackBar(
                                                     content: Text(
                                                       'Please sign in to export your data.',
@@ -791,18 +769,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                               }
 
                                               await exportTableToCsv(
-                                                table:
-                                                    'expense', // your table name in Supabase
-                                                fileBaseName: 'expenses_record',
-                                                eq: {
-                                                  'user_id': user.id,
-                                                }, // filter to this user's data
+                                                table: 'expense',
+                                                fileBaseName:
+                                                    'expenses_record',
+                                                eq: {'user_id': user.id},
                                               );
 
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 const SnackBar(
                                                   content: Text(
                                                     'CSV exported successfully!',
@@ -813,9 +788,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                               );
                                             } catch (e) {
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
                                                   content: Text(
                                                     'Error exporting CSV: $e',
@@ -856,9 +830,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                         decoration: BoxDecoration(
                           color: Colors.transparent,
                           border: Border.all(color: _thinBorder),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(20),
-                          ),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20)),
                         ),
                         padding: const EdgeInsets.all(10),
                         child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -935,9 +908,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                               ),
                                               const SizedBox(height: 16),
                                               Container(
-                                                padding: const EdgeInsets.all(
-                                                  12,
-                                                ),
+                                                padding:
+                                                    const EdgeInsets.all(12),
                                                 decoration: BoxDecoration(
                                                   color: _card,
                                                   border: Border.all(
@@ -955,16 +927,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                         "Input VAT",
                                                         _php.format(
                                                           (row['input_vat'] ??
-                                                                  0)
-                                                              as num,
+                                                                  0) as num,
                                                         ),
                                                       ),
                                                       _infoRow(
                                                         "Total (VAT Excluded)",
                                                         _php.format(
                                                           (row['total_expenses_minus_vat'] ??
-                                                                  0)
-                                                              as num,
+                                                                  0) as num,
                                                         ),
                                                       ),
                                                       const Divider(
@@ -974,8 +944,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                         "Total (VAT Included)",
                                                         _php.format(
                                                           (row['total_expenses'] ??
-                                                                  0)
-                                                              as num,
+                                                                  0) as num,
                                                         ),
                                                       ),
                                                     ] else
@@ -983,8 +952,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                         "Total Expenses",
                                                         _php.format(
                                                           (row['total_expenses'] ??
-                                                                  0)
-                                                              as num,
+                                                                  0) as num,
                                                         ),
                                                       ),
                                                   ],
@@ -1029,41 +997,64 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                       ),
                                                       onChanged: (v) =>
                                                           update_expense_name =
-                                                              v,
+                                                              v.trim(),
                                                     ),
                                                     onSubmit: () async {
-                                                      try {
-                                                        if (update_expense_name
-                                                            .isEmpty) {
-                                                          throw Exception(
-                                                            "Name Field can't be empty!",
-                                                          );
-                                                        }
-                                                        await supabase
-                                                            .from('expense')
-                                                            .update({
-                                                              'expense_name':
-                                                                  update_expense_name,
-                                                            })
-                                                            .eq(
-                                                              'id',
-                                                              row['id'],
-                                                            );
-                                                        update_expense_name =
-                                                            '';
-                                                        _refresh();
-                                                      } catch (e) {
+                                                      if (update_expense_name
+                                                          .isEmpty) {
                                                         ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          SnackBar(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
                                                             backgroundColor:
                                                                 Colors.red,
                                                             content: Text(
-                                                              "Error: $e",
+                                                              "Name field can't be empty.",
                                                             ),
                                                           ),
                                                         );
+                                                        return false;
+                                                      }
+                                                      try {
+                                                        final updated =
+                                                            await supabase
+                                                                .from('expense')
+                                                                .update({
+                                                                  'expense_name':
+                                                                      update_expense_name,
+                                                                })
+                                                                .eq('id',
+                                                                    row['id'])
+                                                                .select()
+                                                                .maybeSingle();
+                                                        if (updated == null) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              content: Text(
+                                                                  'Nothing updated.'),
+                                                            ),
+                                                          );
+                                                          return false;
+                                                        }
+                                                        update_expense_name = '';
+                                                        _refresh();
+                                                        return true;
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content:
+                                                                Text("Error: $e"),
+                                                          ),
+                                                        );
+                                                        return false;
                                                       }
                                                     },
                                                   );
@@ -1085,35 +1076,64 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                       ),
                                                       onChanged: (v) =>
                                                           update_expense_description =
-                                                              v,
+                                                              v.trim(),
                                                     ),
                                                     onSubmit: () async {
-                                                      try {
-                                                        await supabase
-                                                            .from('expense')
-                                                            .update({
-                                                              'description':
-                                                                  update_expense_description,
-                                                            })
-                                                            .eq(
-                                                              'id',
-                                                              row['id'],
-                                                            );
-                                                        update_expense_description =
-                                                            '';
-                                                        _refresh();
-                                                      } catch (e) {
+                                                      if (update_expense_description
+                                                          .isEmpty) {
                                                         ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          SnackBar(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
                                                             backgroundColor:
                                                                 Colors.red,
                                                             content: Text(
-                                                              "Error: $e",
-                                                            ),
+                                                                "Description can't be empty."),
                                                           ),
                                                         );
+                                                        return false;
+                                                      }
+                                                      try {
+                                                        final updated =
+                                                            await supabase
+                                                                .from('expense')
+                                                                .update({
+                                                                  'description':
+                                                                      update_expense_description,
+                                                                })
+                                                                .eq('id',
+                                                                    row['id'])
+                                                                .select()
+                                                                .maybeSingle();
+                                                        if (updated == null) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              content: Text(
+                                                                  'Nothing updated.'),
+                                                            ),
+                                                          );
+                                                          return false;
+                                                        }
+                                                        update_expense_description =
+                                                            '';
+                                                        _refresh();
+                                                        return true;
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content:
+                                                                Text("Error: $e"),
+                                                          ),
+                                                        );
+                                                        return false;
                                                       }
                                                     },
                                                   );
@@ -1138,71 +1158,97 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           TextInputType.number,
                                                       onChanged: (v) =>
                                                           update_price_per_unit_str =
-                                                              v,
+                                                              v.trim(),
                                                     ),
                                                     onSubmit: () async {
+                                                      final parsed = double
+                                                          .tryParse(
+                                                              update_price_per_unit_str);
+                                                      if (parsed == null ||
+                                                          parsed < 0) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Enter a valid non-negative number.",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return false;
+                                                      }
                                                       try {
                                                         update_parsed_price_per_unit =
-                                                            double.parse(
-                                                              update_price_per_unit_str,
-                                                            );
-
-                                                        if (update_parsed_price_per_unit < //Bug Fixed. Value Can't Be Negative
-                                                            0) {
-                                                          throw Exception(
-                                                            "Invalid Input! Value Can't Be Negative!",
-                                                          );
-                                                        }
+                                                            parsed;
 
                                                         final newTotal = formula
                                                             .getTotalExpenses(
-                                                              (row['amount_of_units']
-                                                                      as num)
-                                                                  .toDouble(),
-                                                              update_parsed_price_per_unit,
-                                                            );
+                                                          (row['amount_of_units']
+                                                                  as num)
+                                                              .toDouble(),
+                                                          update_parsed_price_per_unit,
+                                                        );
                                                         final newVAT = formula
                                                             .getInputVAT(
-                                                              newTotal,
-                                                            );
-                                                        final newMinusVAT = formula
-                                                            .getTotalExpensesMinusVAT(
-                                                              newTotal,
-                                                              newVAT,
-                                                            );
+                                                          newTotal,
+                                                        );
+                                                        final newMinusVAT =
+                                                            formula
+                                                                .getTotalExpensesMinusVAT(
+                                                          newTotal,
+                                                          newVAT,
+                                                        );
 
-                                                        await supabase
-                                                            .from('expense')
-                                                            .update({
-                                                              'price_per_unit':
-                                                                  update_parsed_price_per_unit,
-                                                              'total_expenses':
-                                                                  newTotal,
-                                                              'input_vat':
-                                                                  newVAT,
-                                                              'total_expenses_minus_vat':
-                                                                  newMinusVAT,
-                                                            })
-                                                            .eq(
-                                                              'id',
-                                                              row['id'],
-                                                            );
+                                                        final updated =
+                                                            await supabase
+                                                                .from('expense')
+                                                                .update({
+                                                                  'price_per_unit':
+                                                                      update_parsed_price_per_unit,
+                                                                  'total_expenses':
+                                                                      newTotal,
+                                                                  'input_vat':
+                                                                      newVAT,
+                                                                  'total_expenses_minus_vat':
+                                                                      newMinusVAT,
+                                                                })
+                                                                .eq('id',
+                                                                    row['id'])
+                                                                .select()
+                                                                .maybeSingle();
+
+                                                        if (updated == null) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              content: Text(
+                                                                  'Nothing updated.'),
+                                                            ),
+                                                          );
+                                                          return false;
+                                                        }
 
                                                         update_price_per_unit_str =
                                                             '';
                                                         _refresh(full: true);
+                                                        return true;
                                                       } catch (e) {
                                                         ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
+                                                                context)
+                                                            .showSnackBar(
                                                           SnackBar(
                                                             backgroundColor:
                                                                 Colors.red,
-                                                            content: Text(
-                                                              "Error: $e",
-                                                            ),
+                                                            content:
+                                                                Text("Error: $e"),
                                                           ),
                                                         );
+                                                        return false;
                                                       }
                                                     },
                                                   );
@@ -1227,71 +1273,97 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           TextInputType.number,
                                                       onChanged: (v) =>
                                                           update_amount_of_units_str =
-                                                              v,
+                                                              v.trim(),
                                                     ),
                                                     onSubmit: () async {
+                                                      final parsed = double
+                                                          .tryParse(
+                                                              update_amount_of_units_str);
+                                                      if (parsed == null ||
+                                                          parsed <= 0) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Amount of units must be > 0.",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return false;
+                                                      }
                                                       try {
                                                         update_parsed_amount_of_units =
-                                                            double.parse(
-                                                              update_amount_of_units_str,
-                                                            );
-
-                                                        if (update_parsed_amount_of_units <= //Bug Fixed. Value Can't Be Negative
-                                                            0) {
-                                                          throw Exception(
-                                                            "Amount of Units can't be zero!",
-                                                          );
-                                                        }
+                                                            parsed;
 
                                                         final newTotal = formula
                                                             .getTotalExpenses(
-                                                              update_parsed_amount_of_units,
-                                                              (row['price_per_unit']
-                                                                      as num)
-                                                                  .toDouble(),
-                                                            );
+                                                          update_parsed_amount_of_units,
+                                                          (row['price_per_unit']
+                                                                  as num)
+                                                              .toDouble(),
+                                                        );
                                                         final newVAT = formula
                                                             .getInputVAT(
-                                                              newTotal,
-                                                            );
-                                                        final newMinusVAT = formula
-                                                            .getTotalExpensesMinusVAT(
-                                                              newTotal,
-                                                              newVAT,
-                                                            );
+                                                          newTotal,
+                                                        );
+                                                        final newMinusVAT =
+                                                            formula
+                                                                .getTotalExpensesMinusVAT(
+                                                          newTotal,
+                                                          newVAT,
+                                                        );
 
-                                                        await supabase
-                                                            .from('expense')
-                                                            .update({
-                                                              'amount_of_units':
-                                                                  update_parsed_amount_of_units,
-                                                              'total_expenses':
-                                                                  newTotal,
-                                                              'input_vat':
-                                                                  newVAT,
-                                                              'total_expenses_minus_vat':
-                                                                  newMinusVAT,
-                                                            })
-                                                            .eq(
-                                                              'id',
-                                                              row['id'],
-                                                            );
+                                                        final updated =
+                                                            await supabase
+                                                                .from('expense')
+                                                                .update({
+                                                                  'amount_of_units':
+                                                                      update_parsed_amount_of_units,
+                                                                  'total_expenses':
+                                                                      newTotal,
+                                                                  'input_vat':
+                                                                      newVAT,
+                                                                  'total_expenses_minus_vat':
+                                                                      newMinusVAT,
+                                                                })
+                                                                .eq('id',
+                                                                    row['id'])
+                                                                .select()
+                                                                .maybeSingle();
+
+                                                        if (updated == null) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              content: Text(
+                                                                  'Nothing updated.'),
+                                                            ),
+                                                          );
+                                                          return false;
+                                                        }
 
                                                         update_amount_of_units_str =
                                                             '';
                                                         _refresh(full: true);
+                                                        return true;
                                                       } catch (e) {
                                                         ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
+                                                                context)
+                                                            .showSnackBar(
                                                           SnackBar(
                                                             backgroundColor:
                                                                 Colors.red,
-                                                            content: Text(
-                                                              "Error: $e",
-                                                            ),
+                                                            content:
+                                                                Text("Error: $e"),
                                                           ),
                                                         );
+                                                        return false;
                                                       }
                                                     },
                                                   );
@@ -1304,18 +1376,22 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                   Navigator.of(dlgCtx).pop();
                                                   update_isVAT_registered =
                                                       (row['is_vat_registered']
-                                                          as bool?) ??
-                                                      false;
+                                                              as bool?) ??
+                                                          false;
                                                   showDialog(
                                                     context: context,
                                                     builder: (context) {
                                                       return _dialogShell(
                                                         title:
                                                             "Update VAT Status",
-                                                        content: StatefulBuilder(
-                                                          builder: (c, setStateDialog) {
-                                                            return CheckboxListTile.adaptive(
-                                                              title: const Text(
+                                                        content:
+                                                            StatefulBuilder(
+                                                          builder: (c,
+                                                              setStateDialog) {
+                                                            return CheckboxListTile
+                                                                .adaptive(
+                                                              title:
+                                                                  const Text(
                                                                 "Vendor is VAT-registered",
                                                                 style: TextStyle(
                                                                   color: Colors
@@ -1326,10 +1402,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                                   update_isVAT_registered,
                                                               onChanged: (v) =>
                                                                   setStateDialog(
-                                                                    () =>
-                                                                        update_isVAT_registered =
-                                                                            v,
-                                                                  ),
+                                                                () => update_isVAT_registered =
+                                                                    v,
+                                                              ),
                                                             );
                                                           },
                                                         ),
@@ -1337,52 +1412,83 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           OutlinedButton(
                                                             onPressed: () =>
                                                                 Navigator.pop(
-                                                                  context,
-                                                                ),
+                                                                    context),
                                                             child: const Text(
-                                                              "Cancel",
-                                                            ),
+                                                                "Cancel"),
                                                           ),
                                                           FilledButton(
-                                                            onPressed: () async {
-                                                              await supabase
-                                                                  .from(
-                                                                    'expense',
-                                                                  )
-                                                                  .update({
-                                                                    'is_vat_registered':
-                                                                        update_isVAT_registered,
-                                                                  })
-                                                                  .eq(
-                                                                    'id',
-                                                                    row['id'],
+                                                            onPressed:
+                                                                () async {
+                                                              try {
+                                                                final updated =
+                                                                    await supabase
+                                                                        .from(
+                                                                            'expense')
+                                                                        .update({
+                                                                          'is_vat_registered':
+                                                                              update_isVAT_registered,
+                                                                        })
+                                                                        .eq(
+                                                                            'id',
+                                                                            row['id'])
+                                                                        .select()
+                                                                        .maybeSingle();
+                                                                if (updated ==
+                                                                    null) {
+                                                                  if (!mounted)
+                                                                    return;
+                                                                  ScaffoldMessenger.of(
+                                                                          context)
+                                                                      .showSnackBar(
+                                                                    const SnackBar(
+                                                                      backgroundColor:
+                                                                          Colors
+                                                                              .red,
+                                                                      content: Text(
+                                                                          'Nothing updated.'),
+                                                                    ),
                                                                   );
-                                                              if (!mounted)
-                                                                return;
-                                                              Navigator.pop(
-                                                                context,
-                                                              );
-                                                              _refresh();
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                const SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .lightGreenAccent,
-                                                                  content: Text(
-                                                                    "Record Updated Successfully!",
-                                                                    style: TextStyle(
-                                                                      color: Colors
-                                                                          .black,
+                                                                  return;
+                                                                }
+                                                                if (!mounted)
+                                                                  return;
+                                                                Navigator.pop(
+                                                                    context);
+                                                                _refresh();
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                  const SnackBar(
+                                                                    backgroundColor:
+                                                                        Colors
+                                                                            .lightGreenAccent,
+                                                                    content:
+                                                                        Text(
+                                                                      "Record Updated Successfully!",
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.black),
                                                                     ),
                                                                   ),
-                                                                ),
-                                                              );
+                                                                );
+                                                              } catch (e) {
+                                                                if (!mounted)
+                                                                  return;
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                  SnackBar(
+                                                                    backgroundColor:
+                                                                        Colors
+                                                                            .red,
+                                                                    content: Text(
+                                                                        "Error: $e"),
+                                                                  ),
+                                                                );
+                                                              }
                                                             },
                                                             child: const Text(
-                                                              "Update",
-                                                            ),
+                                                                "Update"),
                                                           ),
                                                         ],
                                                       );
@@ -1414,9 +1520,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                         actions: [
                                           OutlinedButton(
                                             style: OutlinedButton.styleFrom(
-                                              foregroundColor: const Color(
-                                                0xFFE0E0E0,
-                                              ),
+                                              foregroundColor:
+                                                  const Color(0xFFE0E0E0),
                                               side: const BorderSide(
                                                 color: Color(0xFF6A6A6A),
                                               ),
@@ -1432,9 +1537,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                           const SizedBox(width: 12),
                                           FilledButton(
                                             style: FilledButton.styleFrom(
-                                              backgroundColor: const Color(
-                                                0xFFFF5252,
-                                              ),
+                                              backgroundColor:
+                                                  const Color(0xFFFF5252),
                                               foregroundColor: Colors.white,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
@@ -1444,33 +1548,28 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                             onPressed: () async {
                                               try {
                                                 await supabase
-                                                    .from(
-                                                      'expense',
-                                                    ) // Bug Fixed
+                                                    .from('expense')
                                                     .delete()
                                                     .eq('id', row['id']);
                                                 if (!mounted) return;
                                                 Navigator.pop(context);
                                                 _refresh(full: true);
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
                                                   const SnackBar(
                                                     backgroundColor:
                                                         Colors.lightGreenAccent,
                                                     content: Text(
                                                       "Record has been deleted successfully",
                                                       style: TextStyle(
-                                                        color: Colors.black,
-                                                      ),
+                                                          color: Colors.black),
                                                     ),
                                                   ),
                                                 );
                                               } on AuthException catch (e) {
                                                 if (!mounted) return;
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
                                                   SnackBar(
                                                     backgroundColor: Colors.red,
                                                     content: Text("Error: $e"),
@@ -1496,12 +1595,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           color: _card,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(
-                                            color: _thinBorder,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border:
+                                              Border.all(color: _thinBorder),
                                         ),
                                         child: ListTile(
                                           leading: const Icon(
@@ -1516,8 +1613,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                        right: 50,
-                                                      ),
+                                                          right: 50),
                                                   child: Text.rich(
                                                     TextSpan(
                                                       children: [
@@ -1526,8 +1622,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               'Expense Name: ',
                                                           style: TextStyle(
                                                             color: Color(
-                                                              0xFFBEBEBE,
-                                                            ),
+                                                                0xFFBEBEBE),
                                                             fontSize: 12,
                                                             fontWeight:
                                                                 FontWeight.w600,
@@ -1538,13 +1633,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               '${row['expense_name'] ?? '-'}',
                                                           style:
                                                               const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 12,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -1560,8 +1653,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                        right: 50,
-                                                      ),
+                                                          right: 50),
                                                   child: Text.rich(
                                                     TextSpan(
                                                       children: [
@@ -1569,8 +1661,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           text: 'Description: ',
                                                           style: TextStyle(
                                                             color: Color(
-                                                              0xFFBEBEBE,
-                                                            ),
+                                                                0xFFBEBEBE),
                                                             fontSize: 12,
                                                           ),
                                                         ),
@@ -1579,10 +1670,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               '${row['description'] ?? '-'}',
                                                           style:
                                                               const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 12,
-                                                              ),
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -1598,8 +1688,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                        right: 50,
-                                                      ),
+                                                          right: 50),
                                                   child: Text.rich(
                                                     TextSpan(
                                                       children: [
@@ -1607,8 +1696,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           text: 'Units: ',
                                                           style: TextStyle(
                                                             color: Color(
-                                                              0xFFBEBEBE,
-                                                            ),
+                                                                0xFFBEBEBE),
                                                             fontSize: 12,
                                                           ),
                                                         ),
@@ -1617,10 +1705,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               '${row['amount_of_units'] ?? '-'}',
                                                           style:
                                                               const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 12,
-                                                              ),
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -1636,8 +1723,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 child: Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                        right: 50,
-                                                      ),
+                                                          right: 50),
                                                   child: Text.rich(
                                                     TextSpan(
                                                       children: [
@@ -1645,23 +1731,20 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           text: 'Total: ',
                                                           style: TextStyle(
                                                             color: Color(
-                                                              0xFFBEBEBE,
-                                                            ),
+                                                                0xFFBEBEBE),
                                                             fontSize: 12,
                                                           ),
                                                         ),
                                                         TextSpan(
                                                           text: _php.format(
                                                             (row['total_expenses'] ??
-                                                                    0)
-                                                                as num,
+                                                                    0) as num,
                                                           ),
                                                           style:
                                                               const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 12,
-                                                              ),
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -1685,10 +1768,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 ),
                                                 padding: EdgeInsets.zero,
                                                 constraints:
-                                                    const BoxConstraints.tightFor(
-                                                      width: 28,
-                                                      height: 28,
-                                                    ),
+                                                    const BoxConstraints
+                                                        .tightFor(
+                                                  width: 28,
+                                                  height: 28,
+                                                ),
                                               ),
                                               const SizedBox(width: 4),
                                               IconButton(
@@ -1700,10 +1784,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                 ),
                                                 padding: EdgeInsets.zero,
                                                 constraints:
-                                                    const BoxConstraints.tightFor(
-                                                      width: 28,
-                                                      height: 28,
-                                                    ),
+                                                    const BoxConstraints
+                                                        .tightFor(
+                                                  width: 28,
+                                                  height: 28,
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -1744,10 +1829,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
     });
   }
 
+  /// Update dialog — shows success ONLY if [onSubmit] returns true.
   void _openUpdateField({
     required String title,
     required Widget field,
-    required Future<void> Function() onSubmit,
+    required Future<bool> Function() onSubmit,
   }) {
     showDialog(
       context: context,
@@ -1772,9 +1858,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       ),
                     ),
                     onPressed: () async {
-                      try {
-                        await onSubmit();
-                        if (!mounted) return;
+                      final ok = await onSubmit();
+                      if (!mounted) return;
+                      if (ok) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -1783,13 +1869,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               "Record Updated Successfully!",
                               style: TextStyle(color: Colors.black),
                             ),
-                          ),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: Colors.red,
-                            content: Text("Error: $e"),
                           ),
                         );
                       }
@@ -1821,27 +1900,30 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     TextField(
                       style: const TextStyle(color: Colors.white),
                       decoration: _input("Expense Name"),
-                      onChanged: (v) => setState(() => expense_name = v),
+                      onChanged: (v) => setState(() => expense_name = v.trim()),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       style: const TextStyle(color: Colors.white),
                       decoration: _input("Expense Description"),
-                      onChanged: (v) => setState(() => expense_description = v),
+                      onChanged: (v) =>
+                          setState(() => expense_description = v.trim()),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       style: const TextStyle(color: Colors.white),
                       decoration: _input("Expense Price per Unit"),
                       keyboardType: TextInputType.number,
-                      onChanged: (v) => setState(() => price_per_unit_str = v),
+                      onChanged: (v) =>
+                          setState(() => price_per_unit_str = v.trim()),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       style: const TextStyle(color: Colors.white),
                       decoration: _input("Total Units"),
                       keyboardType: TextInputType.number,
-                      onChanged: (v) => setState(() => amount_of_units_str = v),
+                      onChanged: (v) =>
+                          setState(() => amount_of_units_str = v.trim()),
                     ),
                     const SizedBox(height: 6),
                     CheckboxListTile.adaptive(
@@ -1867,14 +1949,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               expense_description = '';
                               price_per_unit_str = '';
                               amount_of_units_str = '';
-                              expenses_database = _fetchDate(
-                                utcStartDate: utcStartDate!,
-                                utcEndDate: utcEndDate!,
-                              );
-                              dailyExpensesFuture = _fetchDailyExpenses(
-                                utcStart: utcStartDate!,
-                                utcEnd: utcEndDate!,
-                              );
                             });
                             Navigator.pop(context);
                           },
@@ -1887,48 +1961,89 @@ class _ExpensesPageState extends State<ExpensesPage> {
                             foregroundColor: Colors.black,
                           ),
                           onPressed: () async {
-                            //Debug Fixed- this is just for reference so I can copy paste
+                            // ---- Validate inputs; keep dialog open on errors
+                            final name = expense_name.trim();
+                            final ppu =
+                                double.tryParse(price_per_unit_str.trim());
+                            final units =
+                                int.tryParse(amount_of_units_str.trim());
+
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content:
+                                      Text("Name field can't be empty."),
+                                ),
+                              );
+                              return;
+                            }
+                            if (ppu == null || ppu < 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content:
+                                      Text("Price per unit must be ≥ 0."),
+                                ),
+                              );
+                              return;
+                            }
+                            if (units == null || units <= 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content:
+                                      Text("Total units must be a positive integer."),
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Compute totals
+                            parsed_price_per_unit = ppu;
+                            parsed_amount_of_units = units;
+                            parsed_total_expenses = formula.getTotalExpenses(
+                              units.toDouble(),
+                              ppu,
+                            );
+                            parsed_input_VAT =
+                                formula.getInputVAT(parsed_total_expenses);
+                            parsed_total_expenses_minus_VAT =
+                                formula.getTotalExpensesMinusVAT(
+                              parsed_total_expenses,
+                              parsed_input_VAT,
+                            );
+
+                            // Insert and confirm
                             try {
-                              parsed_price_per_unit = double.parse(
-                                price_per_unit_str,
-                              );
-                              parsed_amount_of_units = int.parse(
-                                amount_of_units_str,
-                              );
-                              if (parsed_amount_of_units < 1 ||
-                                  parsed_price_per_unit < 0) {
-                                throw Exception('Error: Invalid Input!');
+                              final inserted = await supabase
+                                  .from('expense')
+                                  .insert({
+                                    'expense_name': name,
+                                    'description': expense_description.trim(),
+                                    'price_per_unit': parsed_price_per_unit,
+                                    'amount_of_units': parsed_amount_of_units,
+                                    'is_vat_registered': isVAT_registered,
+                                    'input_vat': parsed_input_VAT,
+                                    'total_expenses': parsed_total_expenses,
+                                    'total_expenses_minus_vat':
+                                        parsed_total_expenses_minus_VAT,
+                                  })
+                                  .select()       // return rows
+                                  .maybeSingle(); // null if no row
+
+                              if (inserted == null) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text('Insert failed. Please try again.'),
+                                  ),
+                                );
+                                return;
                               }
 
-                              if (expense_name.isEmpty) {
-                                throw Exception("Name Field Can't Be Empty!");
-                              }
-
-                              parsed_total_expenses = formula.getTotalExpenses(
-                                parsed_amount_of_units.toDouble(),
-                                parsed_price_per_unit,
-                              );
-                              parsed_input_VAT = formula.getInputVAT(
-                                parsed_total_expenses,
-                              );
-                              parsed_total_expenses_minus_VAT = formula
-                                  .getTotalExpensesMinusVAT(
-                                    parsed_total_expenses,
-                                    parsed_input_VAT,
-                                  );
-
-                              await supabase.from('expense').insert({
-                                'expense_name': expense_name,
-                                'description': expense_description,
-                                'price_per_unit': parsed_price_per_unit,
-                                'amount_of_units': parsed_amount_of_units,
-                                'is_vat_registered': isVAT_registered,
-                                'input_vat': parsed_input_VAT,
-                                'total_expenses': parsed_total_expenses,
-                                'total_expenses_minus_vat':
-                                    parsed_total_expenses_minus_VAT,
-                              });
-
+                              if (!mounted) return;
                               setState(() {
                                 isVAT_registered = false;
                                 expense_name = '';
@@ -1944,8 +2059,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                   utcEnd: utcEndDate!,
                                 );
                               });
-
-                              if (!mounted) return;
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
