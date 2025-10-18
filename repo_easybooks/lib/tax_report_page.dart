@@ -197,7 +197,7 @@ class _TaxReportPageState extends State<TaxReportPage> {
       owed_vat = outVat - inVat;
       total_net_profit_before_taxes =
           gs - exp; // Bug Fixed. Should be gs not gp
-      total_net_profit_vat_reg = gs - expMinus - (outVat - inVat);
+      total_net_profit_vat_reg = gs - exp - (outVat - inVat);
       total_net_profit_percentage_tax =
           (gs * 0.97) -
           exp; //Values FIXED: should be gross sale / total expenses. not gross sale - cogs- expenses

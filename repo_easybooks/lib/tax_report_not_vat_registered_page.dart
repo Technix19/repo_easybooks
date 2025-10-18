@@ -184,9 +184,9 @@ class _TaxReportNotVatRegisteredPageState
     final tin = await fetch_cmptd_total_input_vat();
 
     final owed = tout - tin;
-    final npBefore = tgross - texp;
-    final npVatReg = tgross - texpMinus - owed;
-    final npPct = (tgs * 0.97) - tcogs - texp;
+    final npBefore = tgs - texp;
+    final npVatReg = tgs - texpMinus - owed;
+    final npPct = (tgs * 0.97) - texp;
 
     setState(() {
       total_gross_sales = tgs;
@@ -304,10 +304,14 @@ class _TaxReportNotVatRegisteredPageState
 
                               setState(() {
                                 utcStartDate = DateTime.utc(
-                                  startDate.year, startDate.month, startDate.day,
+                                  startDate.year,
+                                  startDate.month,
+                                  startDate.day,
                                 );
                                 utcEndDate = DateTime.utc(
-                                  endDate.year, endDate.month, endDate.day,
+                                  endDate.year,
+                                  endDate.month,
+                                  endDate.day,
                                 ).add(const Duration(days: 1));
 
                                 _refreshAll();
@@ -326,30 +330,80 @@ class _TaxReportNotVatRegisteredPageState
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    14,
+                                    6,
+                                    14,
+                                    10,
+                                  ),
                                   child: Text(
                                     "Tax Report (Not VAT-Registered)",
                                     style: _titleStyle,
                                   ),
                                 ),
-                                const Divider(color: Color(0xFF3A3A3A), height: 1),
+                                const Divider(
+                                  color: Color(0xFF3A3A3A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Total Gross Sales", _nf.format(total_gross_sales)),
-                                const Divider(color: Color(0xFF2A2A2A), height: 1),
+                                _metricRow(
+                                  "Total Gross Sales",
+                                  _nf.format(total_gross_sales),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Total COGs", _nf.format(total_cogs)),
-                                const Divider(color: Color(0xFF2A2A2A), height: 1),
+                                _metricRow(
+                                  "Total COGs",
+                                  _nf.format(total_cogs),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Total Gross Profit", _nf.format(total_gross_profit)),
-                                const Divider(color: Color(0xFF2A2A2A), height: 1),
+                                _metricRow(
+                                  "Total Gross Profit",
+                                  _nf.format(total_gross_profit),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Operating Expenses", _nf.format(total_expenses)),
-                                const Divider(color: Color(0xFF2A2A2A), height: 1),
+                                _metricRow(
+                                  "Operating Expenses",
+                                  _nf.format(total_expenses),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Net Profit (Before Taxes)", _nf.format(total_net_profit_before_taxes)),
-                                const Divider(color: Color(0xFF2A2A2A), height: 1),
+                                _metricRow(
+                                  "Net Profit (Before Taxes)",
+                                  _nf.format(total_net_profit_before_taxes),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
 
-                                _metricRow("Net Profit (minus Percentage Tax)", _nf.format(total_net_profit_percentage_tax)),
+                                _metricRow(
+                                  "Percentage Tax",
+                                  _nf.format(total_gross_sales * 0.03),
+                                ),
+                                const Divider(
+                                  color: Color(0xFF2A2A2A),
+                                  height: 1,
+                                ),
+
+                                _metricRow(
+                                  "Net Profit (minus Percentage Tax)",
+                                  _nf.format(total_net_profit_percentage_tax),
+                                ),
                               ],
                             ),
                           ),
