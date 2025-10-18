@@ -1019,15 +1019,38 @@ class _IncomePageState extends State<IncomePage> {
                                                           updateProductName = v,
                                                     ),
                                                     onSubmit: () async {
-                                                      await supabase
-                                                          .from('income')
-                                                          .update({
-                                                            'product_name':
-                                                                updateProductName,
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      updateProductName = '';
-                                                      _refresh();
+                                                      try {
+                                                        if (updateProductName
+                                                            .isEmpty) {
+                                                          throw Exception(
+                                                            'Name Can\'t Be Empty!',
+                                                          );
+                                                        }
+                                                        await supabase
+                                                            .from('income')
+                                                            .update({
+                                                              'product_name':
+                                                                  updateProductName,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        updateProductName = '';
+                                                        _refresh();
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Error: $e",
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   );
                                                 },
@@ -1052,16 +1075,33 @@ class _IncomePageState extends State<IncomePage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      await supabase
-                                                          .from('income')
-                                                          .update({
-                                                            'description':
-                                                                updateProductDescription,
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      updateProductDescription =
-                                                          '';
-                                                      _refresh();
+                                                      try {
+                                                        await supabase
+                                                            .from('income')
+                                                            .update({
+                                                              'description':
+                                                                  updateProductDescription,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        updateProductDescription =
+                                                            '';
+                                                        _refresh();
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Error: $e",
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   );
                                                 },

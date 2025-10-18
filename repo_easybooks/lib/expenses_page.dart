@@ -1032,15 +1032,39 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      await supabase
-                                                          .from('expense')
-                                                          .update({
-                                                            'expense_name':
-                                                                update_expense_name,
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      update_expense_name = '';
-                                                      _refresh();
+                                                      try {
+                                                        if (update_expense_name
+                                                            .isEmpty) {
+                                                          throw Exception(
+                                                            "Name Field can't be empty!",
+                                                          );
+                                                        }
+                                                        await supabase
+                                                            .from('expense')
+                                                            .update({
+                                                              'expense_name':
+                                                                  update_expense_name,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        update_expense_name =
+                                                            '';
+                                                        _refresh();
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Error: $e",
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   );
                                                 },
@@ -1064,16 +1088,33 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      await supabase
-                                                          .from('expense')
-                                                          .update({
-                                                            'description':
-                                                                update_expense_description,
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      update_expense_description =
-                                                          '';
-                                                      _refresh();
+                                                      try {
+                                                        await supabase
+                                                            .from('expense')
+                                                            .update({
+                                                              'description':
+                                                                  update_expense_description,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        update_expense_description =
+                                                            '';
+                                                        _refresh();
+                                                      } catch (e) {
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                              "Error: $e",
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   );
                                                 },
@@ -1100,59 +1141,69 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      update_parsed_price_per_unit =
-                                                          double.parse(
-                                                            update_price_per_unit_str,
-                                                          );
+                                                      try {
+                                                        update_parsed_price_per_unit =
+                                                            double.parse(
+                                                              update_price_per_unit_str,
+                                                            );
 
-                                                      if (update_parsed_price_per_unit < //Bug Fixed. Value Can't Be Negative
-                                                          0) {
-                                                        if (!mounted) return;
+                                                        if (update_parsed_price_per_unit < //Bug Fixed. Value Can't Be Negative
+                                                            0) {
+                                                          throw Exception(
+                                                            "Invalid Input! Value Can't Be Negative!",
+                                                          );
+                                                        }
+
+                                                        final newTotal = formula
+                                                            .getTotalExpenses(
+                                                              (row['amount_of_units']
+                                                                      as num)
+                                                                  .toDouble(),
+                                                              update_parsed_price_per_unit,
+                                                            );
+                                                        final newVAT = formula
+                                                            .getInputVAT(
+                                                              newTotal,
+                                                            );
+                                                        final newMinusVAT = formula
+                                                            .getTotalExpensesMinusVAT(
+                                                              newTotal,
+                                                              newVAT,
+                                                            );
+
+                                                        await supabase
+                                                            .from('expense')
+                                                            .update({
+                                                              'price_per_unit':
+                                                                  update_parsed_price_per_unit,
+                                                              'total_expenses':
+                                                                  newTotal,
+                                                              'input_vat':
+                                                                  newVAT,
+                                                              'total_expenses_minus_vat':
+                                                                  newMinusVAT,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+
+                                                        update_price_per_unit_str =
+                                                            '';
+                                                        _refresh(full: true);
+                                                      } catch (e) {
                                                         ScaffoldMessenger.of(
                                                           context,
                                                         ).showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
                                                             content: Text(
-                                                              "Error! Value can't be zero!",
+                                                              "Error: $e",
                                                             ),
                                                           ),
                                                         );
-                                                        return;
                                                       }
-
-                                                      final newTotal = formula
-                                                          .getTotalExpenses(
-                                                            (row['amount_of_units']
-                                                                    as num)
-                                                                .toDouble(),
-                                                            update_parsed_price_per_unit,
-                                                          );
-                                                      final newVAT = formula
-                                                          .getInputVAT(
-                                                            newTotal,
-                                                          );
-                                                      final newMinusVAT = formula
-                                                          .getTotalExpensesMinusVAT(
-                                                            newTotal,
-                                                            newVAT,
-                                                          );
-
-                                                      await supabase
-                                                          .from('expense')
-                                                          .update({
-                                                            'price_per_unit':
-                                                                update_parsed_price_per_unit,
-                                                            'total_expenses':
-                                                                newTotal,
-                                                            'input_vat': newVAT,
-                                                            'total_expenses_minus_vat':
-                                                                newMinusVAT,
-                                                          })
-                                                          .eq('id', row['id']);
-
-                                                      update_price_per_unit_str =
-                                                          '';
-                                                      _refresh(full: true);
                                                     },
                                                   );
                                                 },
@@ -1179,59 +1230,69 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      update_parsed_amount_of_units =
-                                                          double.parse(
-                                                            update_amount_of_units_str,
-                                                          );
+                                                      try {
+                                                        update_parsed_amount_of_units =
+                                                            double.parse(
+                                                              update_amount_of_units_str,
+                                                            );
 
-                                                      if (update_parsed_amount_of_units <= //Bug Fixed. Value Can't Be Negative
-                                                          0) {
-                                                        if (!mounted) return;
+                                                        if (update_parsed_amount_of_units <= //Bug Fixed. Value Can't Be Negative
+                                                            0) {
+                                                          throw Exception(
+                                                            "Amount of Units can't be zero!",
+                                                          );
+                                                        }
+
+                                                        final newTotal = formula
+                                                            .getTotalExpenses(
+                                                              update_parsed_amount_of_units,
+                                                              (row['price_per_unit']
+                                                                      as num)
+                                                                  .toDouble(),
+                                                            );
+                                                        final newVAT = formula
+                                                            .getInputVAT(
+                                                              newTotal,
+                                                            );
+                                                        final newMinusVAT = formula
+                                                            .getTotalExpensesMinusVAT(
+                                                              newTotal,
+                                                              newVAT,
+                                                            );
+
+                                                        await supabase
+                                                            .from('expense')
+                                                            .update({
+                                                              'amount_of_units':
+                                                                  update_parsed_amount_of_units,
+                                                              'total_expenses':
+                                                                  newTotal,
+                                                              'input_vat':
+                                                                  newVAT,
+                                                              'total_expenses_minus_vat':
+                                                                  newMinusVAT,
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+
+                                                        update_amount_of_units_str =
+                                                            '';
+                                                        _refresh(full: true);
+                                                      } catch (e) {
                                                         ScaffoldMessenger.of(
                                                           context,
                                                         ).showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
                                                             content: Text(
-                                                              "Error! Value can't be zero!",
+                                                              "Error: $e",
                                                             ),
                                                           ),
                                                         );
-                                                        return;
                                                       }
-
-                                                      final newTotal = formula
-                                                          .getTotalExpenses(
-                                                            update_parsed_amount_of_units,
-                                                            (row['price_per_unit']
-                                                                    as num)
-                                                                .toDouble(),
-                                                          );
-                                                      final newVAT = formula
-                                                          .getInputVAT(
-                                                            newTotal,
-                                                          );
-                                                      final newMinusVAT = formula
-                                                          .getTotalExpensesMinusVAT(
-                                                            newTotal,
-                                                            newVAT,
-                                                          );
-
-                                                      await supabase
-                                                          .from('expense')
-                                                          .update({
-                                                            'amount_of_units':
-                                                                update_parsed_amount_of_units,
-                                                            'total_expenses':
-                                                                newTotal,
-                                                            'input_vat': newVAT,
-                                                            'total_expenses_minus_vat':
-                                                                newMinusVAT,
-                                                          })
-                                                          .eq('id', row['id']);
-
-                                                      update_amount_of_units_str =
-                                                          '';
-                                                      _refresh(full: true);
                                                     },
                                                   );
                                                 },
