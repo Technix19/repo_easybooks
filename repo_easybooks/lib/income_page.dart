@@ -1091,7 +1091,7 @@ class _IncomePageState extends State<IncomePage> {
                                                           int.parse(
                                                             updateQuantity_str,
                                                           );
-                                                      if (update_parsed_quantity ==
+                                                      if (update_parsed_quantity <= //Bug Fixed. Value Can't Be Negative
                                                           0) {
                                                         if (!mounted) return;
                                                         ScaffoldMessenger.of(
@@ -1174,6 +1174,21 @@ class _IncomePageState extends State<IncomePage> {
                                                           double.parse(
                                                             updateSellingPricePerUnit_str,
                                                           );
+
+                                                      if (update_parsed_sellingPricePerUnit < //Bug Fixed. Value Can't Be Negative
+                                                          0) {
+                                                        if (!mounted) return;
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              "Error! Value can't be zero!",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
                                                       await supabase
                                                           .from('income')
                                                           .update({
@@ -1247,6 +1262,21 @@ class _IncomePageState extends State<IncomePage> {
                                                           double.parse(
                                                             updateCOGsPerUnit_str,
                                                           );
+
+                                                      if (update_parsed_COGSPerUnit < //Bug Fixed. Value Can't Be Negative
+                                                          0) {
+                                                        if (!mounted) return;
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              "Error! Value can't be zero!",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
                                                       await supabase
                                                           .from('income')
                                                           .update({
