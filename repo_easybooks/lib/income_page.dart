@@ -1856,18 +1856,21 @@ class _IncomePageState extends State<IncomePage> {
                         //Bug Fixed- Add If Condition to Avoid Null Input
 
                         //Check Values and Validate
+                        if (product_name.isEmpty) {
+                          throw Exception("Name Field Can't Be Empty!");
+                        }
                         if (quantity < 1 || cogs_per_unit < 0) {
                           throw Exception("Error: Invalid Input!");
                         }
-                      } catch (_) {
+                      } catch (e) {
                         if (!mounted) return;
                         log(
                           '$quantity | $selling_price_per_unit | $cogs_per_unit}',
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             backgroundColor: Colors.red,
-                            content: Text("Error: Invalid Input!"),
+                            content: Text("Error: $e"),
                           ),
                         );
                         return;

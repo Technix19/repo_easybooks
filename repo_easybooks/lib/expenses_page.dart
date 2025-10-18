@@ -1891,6 +1891,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                 throw Exception('Error: Invalid Input!');
                               }
 
+                              if (expense_name.isEmpty) {
+                                throw Exception("Name Field Can't Be Empty!");
+                              }
+
                               parsed_total_expenses = formula.getTotalExpenses(
                                 parsed_amount_of_units.toDouble(),
                                 parsed_price_per_unit,
