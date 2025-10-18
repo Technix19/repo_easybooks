@@ -1105,6 +1105,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                             update_price_per_unit_str,
                                                           );
 
+                                                      if (update_parsed_price_per_unit < //Bug Fixed. Value Can't Be Negative
+                                                          0) {
+                                                        if (!mounted) return;
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              "Error! Value can't be zero!",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
+
                                                       final newTotal = formula
                                                           .getTotalExpenses(
                                                             (row['amount_of_units']
@@ -1168,6 +1183,21 @@ class _ExpensesPageState extends State<ExpensesPage> {
                                                           double.parse(
                                                             update_amount_of_units_str,
                                                           );
+
+                                                      if (update_parsed_amount_of_units <= //Bug Fixed. Value Can't Be Negative
+                                                          0) {
+                                                        if (!mounted) return;
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              "Error! Value can't be zero!",
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
 
                                                       final newTotal = formula
                                                           .getTotalExpenses(
