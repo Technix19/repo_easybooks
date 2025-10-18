@@ -1,6 +1,6 @@
-import 'package:easybooks/login_page.dart';
-import 'package:easybooks/widget_tree.dart';
 import 'package:flutter/material.dart';
+import 'package:repo_easybooks/login_page.dart';
+import 'package:repo_easybooks/widget_tree.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthGate extends StatelessWidget {

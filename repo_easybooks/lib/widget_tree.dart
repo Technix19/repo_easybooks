@@ -1,14 +1,7 @@
-import 'package:easybooks/auth/auth_gate.dart';
-import 'package:easybooks/auth/auth_service.dart';
-import 'package:easybooks/data/notifiers.dart';
-import 'package:easybooks/expenses_page.dart';
-import 'package:easybooks/home_page.dart';
-import 'package:easybooks/income_page.dart';
-import 'package:easybooks/select_vat_status_page.dart';
-import 'package:easybooks/tax_report_not_vat_registered_page.dart';
-import 'package:easybooks/tax_report_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:repo_easybooks/auth/auth_gate.dart';
+import 'package:repo_easybooks/data/notifiers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ====== Simple knob to control ALL sidebar menu label font sizes ======

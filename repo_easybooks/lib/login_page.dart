@@ -1,8 +1,6 @@
-import 'package:easybooks/auth/auth_service.dart';
-import 'package:easybooks/forgot_pass.dart';
-import 'package:easybooks/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:repo_easybooks/signup_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
