@@ -6,6 +6,7 @@ import 'package:repo_easybooks/data/notifiers.dart';
 import 'package:repo_easybooks/expenses_page.dart';
 import 'package:repo_easybooks/home_page.dart';
 import 'package:repo_easybooks/income_page.dart';
+import 'package:repo_easybooks/select_vat_status_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ====== Simple knob to control ALL sidebar menu label font sizes ======
