@@ -1087,63 +1087,70 @@ class _IncomePageState extends State<IncomePage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      update_parsed_quantity =
-                                                          int.parse(
-                                                            updateQuantity_str,
+                                                      try {
+                                                        update_parsed_quantity =
+                                                            int.parse(
+                                                              updateQuantity_str,
+                                                            );
+                                                        if (update_parsed_quantity <= //Bug Fixed. Value Can't Be Negative
+                                                            0) {
+                                                          throw Exception(
+                                                            'Invalid Input!',
                                                           );
-                                                      if (update_parsed_quantity <= //Bug Fixed. Value Can't Be Negative
-                                                          0) {
-                                                        if (!mounted) return;
+                                                        }
+                                                        await supabase
+                                                            .from('income')
+                                                            .update({
+                                                              'quantity':
+                                                                  update_parsed_quantity,
+                                                              'computed_gross_profit': formula.getComputedGrossProfit(
+                                                                update_parsed_quantity,
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                                (row['cogs_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'total_cogs': formula.getTotalCOGs(
+                                                                update_parsed_quantity,
+                                                                (row['cogs_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'output_vat': formula.getOutputVAT(
+                                                                update_parsed_quantity,
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'total_gross_sales': formula.getTotalGrossSales(
+                                                                update_parsed_quantity,
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        updateQuantity_str = '';
+                                                        _refresh();
+                                                      } catch (e) {
                                                         ScaffoldMessenger.of(
+                                                          // Bug Fixed: Error handling
                                                           context,
                                                         ).showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
                                                             content: Text(
-                                                              "Error! Value can't be zero!",
+                                                              "Error: $e",
                                                             ),
                                                           ),
                                                         );
-                                                        return;
                                                       }
-                                                      await supabase
-                                                          .from('income')
-                                                          .update({
-                                                            'quantity':
-                                                                update_parsed_quantity,
-                                                            'computed_gross_profit': formula.getComputedGrossProfit(
-                                                              update_parsed_quantity,
-                                                              (row['selling_price_per_unit']
-                                                                      as num)
-                                                                  .toDouble(),
-                                                              (row['cogs_per_unit']
-                                                                      as num)
-                                                                  .toDouble(),
-                                                            ),
-                                                            'total_cogs': formula
-                                                                .getTotalCOGs(
-                                                                  update_parsed_quantity,
-                                                                  (row['cogs_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                            'output_vat': formula
-                                                                .getOutputVAT(
-                                                                  update_parsed_quantity,
-                                                                  (row['selling_price_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                            'total_gross_sales':
-                                                                formula.getTotalGrossSales(
-                                                                  update_parsed_quantity,
-                                                                  (row['selling_price_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      updateQuantity_str = '';
-                                                      _refresh();
                                                     },
                                                   );
                                                 },
@@ -1170,68 +1177,75 @@ class _IncomePageState extends State<IncomePage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      update_parsed_sellingPricePerUnit =
-                                                          double.parse(
-                                                            updateSellingPricePerUnit_str,
-                                                          );
+                                                      try {
+                                                        update_parsed_sellingPricePerUnit =
+                                                            double.parse(
+                                                              updateSellingPricePerUnit_str,
+                                                            );
 
-                                                      if (update_parsed_sellingPricePerUnit < //Bug Fixed. Value Can't Be Negative
-                                                          0) {
-                                                        if (!mounted) return;
+                                                        if (update_parsed_sellingPricePerUnit < //Bug Fixed. Value Can't Be Negative
+                                                            0) {
+                                                          throw Exception(
+                                                            "Invalid Input!",
+                                                          );
+                                                        }
+                                                        await supabase
+                                                            .from('income')
+                                                            .update({
+                                                              'selling_price_per_unit':
+                                                                  update_parsed_sellingPricePerUnit,
+                                                              'computed_gross_profit': formula.getComputedGrossProfit(
+                                                                (row['quantity']
+                                                                        as num)
+                                                                    .toInt(),
+                                                                update_parsed_sellingPricePerUnit,
+                                                                (row['cogs_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'total_cogs': formula.getTotalCOGs(
+                                                                (row['quantity']
+                                                                        as num)
+                                                                    .toInt(),
+                                                                (row['cogs_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'output_vat': formula
+                                                                  .getOutputVAT(
+                                                                    (row['quantity']
+                                                                            as num)
+                                                                        .toInt(),
+                                                                    update_parsed_sellingPricePerUnit,
+                                                                  ),
+                                                              'total_gross_sales':
+                                                                  formula.getTotalGrossSales(
+                                                                    (row['quantity']
+                                                                            as num)
+                                                                        .toInt(),
+                                                                    update_parsed_sellingPricePerUnit,
+                                                                  ),
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        updateSellingPricePerUnit_str =
+                                                            '';
+                                                        _refresh();
+                                                      } catch (e) {
                                                         ScaffoldMessenger.of(
                                                           context,
                                                         ).showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
                                                             content: Text(
-                                                              "Error! Value can't be zero!",
+                                                              "Error: $e",
                                                             ),
                                                           ),
                                                         );
-                                                        return;
                                                       }
-                                                      await supabase
-                                                          .from('income')
-                                                          .update({
-                                                            'selling_price_per_unit':
-                                                                update_parsed_sellingPricePerUnit,
-                                                            'computed_gross_profit':
-                                                                formula.getComputedGrossProfit(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  update_parsed_sellingPricePerUnit,
-                                                                  (row['cogs_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                            'total_cogs': formula
-                                                                .getTotalCOGs(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  (row['cogs_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                            'output_vat': formula
-                                                                .getOutputVAT(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  update_parsed_sellingPricePerUnit,
-                                                                ),
-                                                            'total_gross_sales':
-                                                                formula.getTotalGrossSales(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  update_parsed_sellingPricePerUnit,
-                                                                ),
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      updateSellingPricePerUnit_str =
-                                                          '';
-                                                      _refresh();
                                                     },
                                                   );
                                                 },
@@ -1258,70 +1272,76 @@ class _IncomePageState extends State<IncomePage> {
                                                               v,
                                                     ),
                                                     onSubmit: () async {
-                                                      update_parsed_COGSPerUnit =
-                                                          double.parse(
-                                                            updateCOGsPerUnit_str,
-                                                          );
+                                                      try {
+                                                        update_parsed_COGSPerUnit =
+                                                            double.parse(
+                                                              updateCOGsPerUnit_str,
+                                                            );
 
-                                                      if (update_parsed_COGSPerUnit < //Bug Fixed. Value Can't Be Negative
-                                                          0) {
-                                                        if (!mounted) return;
+                                                        if (update_parsed_COGSPerUnit < //Bug Fixed. Value Can't Be Negative
+                                                            0) {
+                                                          throw Exception(
+                                                            "Invalid Input!", //Bug Fixed. Input not throwing error
+                                                          );
+                                                        }
+                                                        await supabase
+                                                            .from('income')
+                                                            .update({
+                                                              'cogs_per_unit':
+                                                                  update_parsed_COGSPerUnit,
+                                                              'computed_gross_profit': formula.getComputedGrossProfit(
+                                                                (row['quantity']
+                                                                        as num)
+                                                                    .toInt(),
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                                update_parsed_COGSPerUnit,
+                                                              ),
+                                                              'total_cogs': formula
+                                                                  .getTotalCOGs(
+                                                                    (row['quantity']
+                                                                            as num)
+                                                                        .toInt(),
+                                                                    update_parsed_COGSPerUnit,
+                                                                  ),
+                                                              'output_vat': formula.getOutputVAT(
+                                                                (row['quantity']
+                                                                        as num)
+                                                                    .toInt(),
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                              'total_gross_sales': formula.getTotalGrossSales(
+                                                                (row['quantity']
+                                                                        as num)
+                                                                    .toInt(),
+                                                                (row['selling_price_per_unit']
+                                                                        as num)
+                                                                    .toDouble(),
+                                                              ),
+                                                            })
+                                                            .eq(
+                                                              'id',
+                                                              row['id'],
+                                                            );
+                                                        updateCOGsPerUnit_str =
+                                                            '';
+                                                        _refresh();
+                                                      } catch (e) {
                                                         ScaffoldMessenger.of(
                                                           context,
                                                         ).showSnackBar(
-                                                          const SnackBar(
+                                                          SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
                                                             content: Text(
-                                                              "Error! Value can't be zero!",
+                                                              "Error! $e",
                                                             ),
                                                           ),
                                                         );
-                                                        return;
                                                       }
-                                                      await supabase
-                                                          .from('income')
-                                                          .update({
-                                                            'cogs_per_unit':
-                                                                update_parsed_COGSPerUnit,
-                                                            'computed_gross_profit':
-                                                                formula.getComputedGrossProfit(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  (row['selling_price_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                  update_parsed_COGSPerUnit,
-                                                                ),
-                                                            'total_cogs': formula
-                                                                .getTotalCOGs(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  update_parsed_COGSPerUnit,
-                                                                ),
-                                                            'output_vat': formula
-                                                                .getOutputVAT(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  (row['selling_price_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                            'total_gross_sales':
-                                                                formula.getTotalGrossSales(
-                                                                  (row['quantity']
-                                                                          as num)
-                                                                      .toInt(),
-                                                                  (row['selling_price_per_unit']
-                                                                          as num)
-                                                                      .toDouble(),
-                                                                ),
-                                                          })
-                                                          .eq('id', row['id']);
-                                                      updateCOGsPerUnit_str =
-                                                          '';
-                                                      _refresh();
                                                     },
                                                   );
                                                 },
