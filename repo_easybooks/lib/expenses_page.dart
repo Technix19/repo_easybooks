@@ -1772,18 +1772,27 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       ),
                     ),
                     onPressed: () async {
-                      await onSubmit();
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          backgroundColor: Colors.lightGreenAccent,
-                          content: Text(
-                            "Record Updated Successfully!",
-                            style: TextStyle(color: Colors.black),
+                      try {
+                        await onSubmit();
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Colors.lightGreenAccent,
+                            content: Text(
+                              "Record Updated Successfully!",
+                              style: TextStyle(color: Colors.black),
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content: Text("Error: $e"),
+                          ),
+                        );
+                      }
                     },
                     child: const Text("Update"),
                   ),
