@@ -1860,6 +1860,21 @@ class _IncomePageState extends State<IncomePage> {
                           throw Exception("Name Field Can't Be Empty!");
                         }
                         if (quantity < 1 || cogs_per_unit < 0) {
+                          setState(() {
+                            product_name = '';
+                            product_description = '';
+                            quantity_str = '';
+                            selling_price_str = '';
+                            cogs_per_unit_str = '';
+                            income_database = _fetchDate(
+                              utcStartDate: utcStartDate!,
+                              utcEndDate: utcEndDate!,
+                            );
+                            dailySalesFuture = _fetchDailySales(
+                              utcStartDate: utcStartDate!,
+                              utcEndDate: utcEndDate!,
+                            );
+                          });
                           throw Exception("Error: Invalid Input!");
                         }
                       } catch (e) {
