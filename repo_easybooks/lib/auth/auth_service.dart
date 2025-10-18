@@ -19,7 +19,11 @@ class AuthService {
     String email,
     String password,
   ) async {
-    return await _supabase.auth.signUp(password: password, email: email);
+    return await _supabase.auth.signUp(
+      password: password,
+      email: email,
+      emailRedirectTo: '${Uri.base.origin}/#/login',
+    );
   }
 
   //Sign Out
