@@ -1,139 +1,107 @@
-# EasyBooks: Flutter Web deployment without Xcode
+# EasyBooks — Xcode-free Flutter Web preview on Vercel
 
-EasyBooks is a Flutter application whose browser build can run on Vercel.
-The app's Flutter source is under `repo_easybooks/`, not at the repository root.
+EasyBooks builds on GitHub Actions (Ubuntu, no Xcode). Vercel hosts **only**
+the compiled Flutter Web files. The Flutter application lives in
+`repo_easybooks/` inside this GitHub repository.
 
-## How it works
+## Current status
 
-1. GitHub Actions installs Flutter on a Linux runner, runs unit tests, and executes
-   `flutter build web --release --base-href "/"` from `repo_easybooks/`.
-2. The compiled files are uploaded as a GitHub Actions artifact.
-3. When you manually approve a production deployment, a second GitHub Actions
-   job downloads the same artifact, wraps it in Vercel Build Output API v3, and
-   runs `vercel deploy --prebuilt --prod`.
-4. Supabase hosts the database and email authentication. Vercel hosts **only the
-   web frontend**. No Xcode or local iOS build is involved.
+- GitHub Actions has already **successfully built Flutter Web**.
+- Vercel project **easybooks** exists in the **Codely** team:
+  https://vercel.com/codely4/easybooks
+- The Vercel project is intentionally **not Git-connected**. GitHub Actions
+  builds Flutter first, then uploads a prebuilt site to Vercel.
+- GitHub Actions deploys a **preview only**, with an explicit checkbox.
+  No production deployment is configured until authentication and data
+  isolation have been verified.
 
-This workflow intentionally does **not** auto-publish pull requests or pushes
-to `main`: a financial app should first pass authentication and RLS checks.
+## Step 1. Create a Vercel token
 
-## 1. Verify the Flutter Web build in GitHub
+1. Sign in to Vercel: https://vercel.com/account/tokens
+2. Generate a personal access token with access to the **Codely** team.
+3. Open https://github.com/Technix19/repo_easybooks/settings/secrets/actions
+4. Add a **repository secret** named `VERCEL_TOKEN`. Paste its value
+   directly into the GitHub form. **Never paste the token in chat or commit it.**
 
-Open **GitHub → Actions → Flutter Web CI and Vercel Deployment**.
-The workflow runs automatically when you open a PR or push to `main`.
+Vercel team/project IDs are non-secret identifiers and are already configured
+in `.github/workflows/flutter-web.yml`:
 
-Check that **Test and build Flutter Web** succeeds and has an
-`easybooks-flutter-web` downloadable artifact. This stage doesn't need Vercel
-credentials.
+- `VERCEL_ORG_ID=team_Vh6aHxefF7vYCxIl0brubyDU`
+- `VERCEL_PROJECT_ID=prj_8w6vIiQaubQXbbgsSs2WusQF3Rzn`
 
-For a local browser test if Flutter is already installed:
+You **do not need** to add these two IDs as GitHub secrets.
 
-```bash
-cd repo_easybooks
-flutter pub get
-flutter test
-flutter build web --release --base-href "/"
-```
+## Step 2. Run the preview
 
-The output is `repo_easybooks/build/web`.
+After merging the PR that contains the preview workflow:
 
-## 2. Create or link a Vercel project
+1. Visit https://github.com/Technix19/repo_easybooks/actions
+2. Open **Flutter Web CI and Vercel Deployment**.
+3. Select **Run workflow**.
+4. Select the `main` branch and check **deploy_preview**.
+5. Start the workflow. It installs Flutter, runs tests, compiles the app
+   and deploys the **same tested artifact** to Vercel.
+6. Find the new preview URL in the **Deploy prebuilt Flutter Web preview
+   to Vercel** job summary.
 
-Use a Vercel project with the **Other** framework preset, intended for a
-prebuilt static site. **Do not rely on a Vercel-side Flutter build**. This
-repository's workflow handles compilation on GitHub's Ubuntu runner.
+The job runs only as a manual workflow on `main`. Pull requests and normal
+pushes run Flutter tests/build without Vercel authentication or deployment.
 
-You can create/link a Vercel project through the Vercel CLI using a small
-empty working directory (no Flutter or Xcode required):
+A preview might be protected by Vercel Authentication; sign in to your
+authorized Vercel account to access it. Do not disable that protection
+just to get a public screenshot.
 
-```bash
-npm install --global vercel
-mkdir easybooks-vercel-link
-cd easybooks-vercel-link
-vercel login
-vercel link
-```
+## Step 3. Configure Supabase URLs for testing
 
-Select/create the Vercel project you want to deploy. Read the two IDs from
-`.vercel/project.json`: `orgId` and `projectId`.
+Supabase project: `keprvxiclcxdvasdxpey` ("EasyBooks Web App").
 
-If you already have a Vercel project, choose it during `vercel link`.
-Do not paste the personal access token into GitHub source files.
+Open https://supabase.com/dashboard/project/keprvxiclcxdvasdxpey/auth/url-configuration
 
-## 3. Configure GitHub Actions secrets
+Add the **actual preview deployment's URL** to Supabase Auth's redirect
+allow list. The app's login and signup flows generate hash-based paths:
 
-In the **repo_easybooks** GitHub repository, open **Settings → Secrets and
-variables → Actions → New repository secret** and create:
+- `https://YOUR-ACTUAL-PREVIEW.vercel.app/#/` (magic-link login)
+- `https://YOUR-ACTUAL-PREVIEW.vercel.app/#/login` (signup email confirmation)
 
-| Secret | Value |
-|---|---|
-| `VERCEL_TOKEN` | Your Vercel personal access token (create from Vercel Account Settings → Tokens) |
-| `VERCEL_ORG_ID` | `orgId` from `.vercel/project.json` |
-| `VERCEL_PROJECT_ID` | `projectId` from `.vercel/project.json` |
+Keep existing URLs in place so other app installations are not disrupted.
+Do not change the production Site URL until the production domain is known
+and verified. Preview URLs can change between builds; add the new exact URL
+when running a fresh login test.
 
-The workflow will check these values before attempting a deployment.
-GitHub Actions secrets are not committed to the repo.
+## Step 4. Test the real browser app
 
-**Important:** If you import the GitHub repo directly using Vercel Git
-Integration, disable its automatic Vercel builds for this project so the
-GitHub Actions prebuilt deploy pipeline remains the single source of truth.
+1. Visit the preview with a desktop browser.
+2. Sign up or sign in and confirm the email redirect lands on EasyBooks.
+3. Test login/logout and returning to the app after refreshing the page.
+4. Create income and expense entries and inspect charts and tax reports.
+5. Download a CSV and confirm its rows match the signed-in user's data.
+6. Test both desktop and narrow/mobile viewport widths.
+7. Use **two distinct test accounts**, A and B. Confirm that account A
+   cannot view, modify, delete, or export B's financial records, and
+   vice versa. Verify aggregation RPCs don't mix accounts.
 
-## 4. Configure Supabase login redirects
+A read-only audit found live RLS enabled on `income`, `expense`,
+and `profile`, with ownership checks `user_id = auth.uid()`.
+Both daily aggregate RPCs run with invoker permissions. These are good
+initial checks, but they do not replace a two-account browser test.
 
-Your Supabase project is `keprvxiclcxdvasdxpey` ("EasyBooks Web App").
-Open **Supabase → Authentication → URL Configuration**.
+Supabase Security Advisors also flagged:
+- Mutable search paths on two reporting RPCs.
+- Some objects visible in the GraphQL schema.
+- Leaked-password protection disabled.
 
-After a preview or production domain is known, allow the URLs that the
-Flutter code actually generates, such as:
+Review those findings before wider public release.
 
-- `https://YOUR-PROJECT.vercel.app/#/` (magic-link login)
-- `https://YOUR-PROJECT.vercel.app/#/login` (email-confirmation redirect)
+## Production deployment
 
-Supabase also needs the site origin. Configure the **Site URL** to the
-production deployment origin when you are ready.
+Not configured yet. Keep the preview behind Vercel Authentication and
+review functional/security tests first. Production can be added as
+a separate manually approved GitHub Actions job after the preview
+has passed review.
 
-These must use your real Vercel domain, not `YOUR-PROJECT`.
-Test both sign-in and new-user verification from a fresh browser session.
-
-## 5. Verify financial data isolation
-
-Before production, use two test accounts to confirm:
-
-- Account A cannot view, update, or delete Account B's income, expenses,
-  or profile.
-- Daily graph/RPC totals include only the signed-in account's rows.
-- Newly created income and expense rows receive the correct `user_id`.
-- CSV export downloads only the signed-in user's records.
-- Magic-link and signup redirects correctly return to EasyBooks.
-- Desktop and mobile layout does not overflow.
-
-Live table policies already use `user_id = auth.uid()`, but the isolation
-and functional checks still need two real authenticated test sessions.
-The app is intended for browser use; **not** a native iOS binary.
-
-Security warnings seen in the current Supabase project include mutable
-function `search_path` settings, GraphQL schema visibility, and disabled
-leaked-password protection. Review these warnings separately in Supabase
-Security Advisors before broad public release.
-
-## 6. Deploy manually to Vercel production
-
-Once the PR is merged, the build is green, credentials exist, and the
-security checks pass:
-
-1. Open **GitHub → Actions → Flutter Web CI and Vercel Deployment**.
-2. Select **Run workflow** on the `main` branch.
-3. Enable **deploy_production** and run it.
-4. Review the deployment URL from the Vercel deploy step.
-
-This upload uses the compiled web artifact in `.vercel/output/static` and
-a minimal Build Output API configuration. It never attempts to build iOS.
-
-## Useful links
+## Technical references
 
 - [Flutter Web deployment](https://docs.flutter.dev/deployment/web)
-- [subosito/flutter-action](https://github.com/subosito/flutter-action)
 - [Vercel Build Output API](https://vercel.com/docs/build-output-api)
-- [Vercel CLI prebuilt deployments](https://vercel.com/docs/cli/deploy)
-- [Supabase auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls)
-- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Prebuilt Vercel deployment](https://vercel.com/docs/cli/deploy)
+- [Supabase redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls)
