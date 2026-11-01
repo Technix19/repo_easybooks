@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:repo_easybooks/auth/auth_gate.dart';
 import 'package:repo_easybooks/login_page.dart';
+import 'package:repo_easybooks/reset_password_page.dart';
 import 'package:repo_easybooks/widget_tree.dart';
 import 'dart:html' as html;
 
@@ -28,14 +29,25 @@ void main(List<String> args) async {
         uri.queryParameters.containsKey('code') ||
         uri.queryParameters.containsKey('token_hash');
 
+    // Recovery emails redirect with ?recovery=1 and auth tokens in the hash.
+    // Preserve the reset screen while removing session tokens from the address bar.
+    final isRecoveryLink =
+        uri.queryParameters['recovery'] == '1' ||
+        uri.queryParameters['type'] == 'recovery' ||
+        uri.fragment.contains('type=recovery');
+
     if (hasTokensInHash || hasTokensInQuery) {
       try {
         await Supabase.instance.client.auth.getSessionFromUrl(uri);
-
-        // keep your landing hash (to hit AuthGate at '/')
-        final clean = uri.replace(queryParameters: {}, fragment: '/');
+      } catch (error) {
+        debugPrint('Unable to complete authentication callback: $error');
+      } finally {
+        final clean = uri.replace(
+          queryParameters: {},
+          fragment: isRecoveryLink ? '/reset-password' : '/',
+        );
         html.window.history.replaceState(null, '', clean.toString());
-      } catch (_) {}
+      }
     }
   }
 
@@ -63,6 +75,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (_) => const AuthGate(),
         '/login': (_) => const LoginPage(),
+        '/reset-password': (_) => const ResetPasswordPage(),
         '/home': (_) => const WidgetTree(),
       },
     );
