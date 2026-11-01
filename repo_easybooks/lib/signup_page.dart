@@ -11,6 +11,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isSubmitting = false;
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -19,47 +20,63 @@ class _SignUpPageState extends State<SignUpPage> {
 
   final authService = AuthService();
 
-  void signUp() async {
-    try {
-      if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            content: Text(
-              "Error: Passwords don't match!",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-        return;
-      }
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
-      await authService.signUpWithEmailAndPassword(
-        _emailController.text,
-        _passwordController.text,
-      );
+  Future<void> signUp() async {
+    if (_isSubmitting) return;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Color(0xFFC8E6C9),
-          content: Text(
-            "Almost there! Open your inbox and tap the link we sent to verify your email.",
-            style: TextStyle(color: Color(0xFF1B5E20)),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.red,
-          content: Text(
-            "An error occurred: $e",
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
+    if (email.isEmpty || !email.contains('@')) {
+      _showMessage('Enter a valid email address.', error: true);
+      return;
     }
+    if (password.length < 8) {
+      _showMessage('Password must be at least 8 characters.', error: true);
+      return;
+    }
+    if (password != _confirmPasswordController.text) {
+      _showMessage('Passwords do not match.', error: true);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final response = await authService.signUpWithEmailAndPassword(email, password);
+      if (!mounted) return;
+      if (response.session != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      } else {
+        _showMessage(
+          'Account created. Check your email once to confirm your address, then sign in with your password.',
+          error: false,
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage('Could not create account: $error', error: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showMessage(String message, {required bool error}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: error ? Colors.red : const Color(0xFFC8E6C9),
+        content: Text(
+          message,
+          style: TextStyle(color: error ? Colors.white : const Color(0xFF1B5E20)),
+        ),
+      ),
+    );
   }
 
   @override
@@ -154,8 +171,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: signUp,
-                  child: Text('Sign up'),
+                  onPressed: _isSubmitting ? null : signUp,
+                  child: _isSubmitting
+                      ? const SizedBox(height: 20, width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Sign up'),
                 ),
               ],
             ),
@@ -168,6 +188,8 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextField(
       controller: controller,
+      keyboardType: TextInputType.emailAddress,
+      autocorrect: false,
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
