@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deployment_url="$(vercel deploy --prebuilt --yes)"
+          deployment_url="$(vercel deploy --prebuilt --yes --target=preview)"
           echo "Preview deployment: $deployment_url"
           echo "### EasyBooks Vercel Preview" >> "$GITHUB_STEP_SUMMARY"
           echo "$deployment_url" >> "$GITHUB_STEP_SUMMARY"
