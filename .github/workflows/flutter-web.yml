@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main' }}
-    environment: easybooks-preview
+    environment: "EasyBooks Vercel Environment"
     env:
       VERCEL_ORG_ID: team_Vh6aHxefF7vYCxIl0brubyDU
       VERCEL_PROJECT_ID: prj_8w6vIiQaubQXbbgsSs2WusQF3Rzn
