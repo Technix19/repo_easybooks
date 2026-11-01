@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:repo_easybooks/auth/auth_service.dart';
+import 'package:repo_easybooks/forgot_pass.dart';
 import 'package:repo_easybooks/signup_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,163 +13,205 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool obscureLoginPassword = true;
-  String email = "";
-  //String password = "";
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
 
-  void logIn() async {
+  bool _hidePassword = true;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _logIn() async {
+    if (_isSubmitting || !_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
     try {
-      await Supabase.instance.client.auth.signInWithOtp(
-        email: email,
-        shouldCreateUser: false,
-        emailRedirectTo: '${Uri.base.origin}/#/',
+      await _authService.signInWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.lightGreenAccent,
-          content: Text(
-            "We’ve just emailed you a magic link — check your inbox to sign in!",
-          ),
-        ),
-      );
-    } on AuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.red,
-          content: Text(
-            "An error occurred: $e",
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
+      if (!mounted) return;
+      // Works both from the root AuthGate and the explicit /login route.
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      _showError(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showError('Unable to sign in right now. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.red.shade700, content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(color: Color(0xFF161616)),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Welcome to EasyBooks!",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 80,
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 30),
-
-                  Center(
-                    child: Lottie.asset(
-                      "assets/lotties/analytics.json",
-                      width: 500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 500,
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: Colors.grey)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 50.0, top: 130, right: 50),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "EasyBooks",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,
-                      ),
-                    ),
-
-                    SizedBox(height: 80),
-
-                    Text(
-                      "Login into your account!",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-
-                    Row(
+      backgroundColor: const Color(0xFF161616),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 1000;
+            final loginPanel = Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 430),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text("Don't have an account? "),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return SignUpPage();
-                                },
-                              ),
-                            );
+                        const Text(
+                          'EasyBooks',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 27),
+                        ),
+                        const SizedBox(height: 60),
+                        const Text(
+                          'Log in to your account',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Use your email and password. No magic link needed.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 36),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.username, AutofillHints.email],
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: (value) {
+                            final email = value?.trim() ?? '';
+                            if (email.isEmpty || !email.contains('@')) {
+                              return 'Enter a valid email address';
+                            }
+                            return null;
                           },
-                          child: Text(
-                            " Sign up",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 22),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _hidePassword,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          onFieldSubmitted: (_) => _logIn(),
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            suffixIcon: IconButton(
+                              tooltip: _hidePassword ? 'Show password' : 'Hide password',
+                              icon: Icon(_hidePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined),
+                              onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                            ),
                           ),
+                          validator: (value) => (value == null || value.isEmpty)
+                              ? 'Enter your password'
+                              : null,
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const ForgotPage(),
+                                      ),
+                                    ),
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6FFF43),
+                              foregroundColor: Colors.black,
+                            ),
+                            onPressed: _isSubmitting ? null : _logIn,
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Text('Log in'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("Don't have an account?"),
+                            TextButton(
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => const SignUpPage(),
+                                        ),
+                                      ),
+                              child: const Text('Sign up'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 40),
-
-                    TextField(
-                      decoration: InputDecoration(label: Text("Email")),
-                      onChanged: (value) {
-                        setState(() {
-                          email = value;
-                        });
-                      },
-                    ),
-
-                    SizedBox(height: 40),
-
-                    Center(
-                      child: InkWell(
-                        onTap: logIn,
-                        child: Container(
-                          width: 200,
-                          height: 35,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF6FFF43),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Log in",
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 15),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            );
+            if (!wide) return loginPanel;
+
+            return Row(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Welcome to EasyBooks!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 50),
+                          ),
+                          const SizedBox(height: 24),
+                          Lottie.asset('assets/lotties/analytics.json', width: 440),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 500,
+                  decoration: const BoxDecoration(
+                    border: Border(left: BorderSide(color: Colors.grey)),
+                  ),
+                  child: loginPanel,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
