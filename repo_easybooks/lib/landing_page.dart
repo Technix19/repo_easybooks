@@ -23,8 +23,8 @@ class _LandingPageState extends State<LandingPage> {
   final features = GlobalKey();
   final steps = GlobalKey();
   final faq = GlobalKey();
-  final preview =
-      'https://raw.githubusercontent.com/Technix19/apostol-portfolio/main/public/easybooks-dashboard-2026.webp';
+  // Bundled screenshot: losslessly encoded from the real EasyBooks dashboard.
+  static const preview = 'assets/images/easybooks-landing-preview.webp';
 
   bool get signedIn =>
       Supabase.instance.client.auth.currentSession != null;
@@ -317,11 +317,11 @@ class _LandingPageState extends State<LandingPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: AspectRatio(
-                      aspectRatio: 2047 / 1111,
-                      child: Image.network(
+                      aspectRatio: 2047 / 1117,
+                      child: Image.asset(
                         preview,
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.medium,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
                         semanticLabel:
                             'EasyBooks dashboard showing income, expenses, gross profit, and daily charts',
                         errorBuilder: (_, __, ___) => const ColoredBox(
