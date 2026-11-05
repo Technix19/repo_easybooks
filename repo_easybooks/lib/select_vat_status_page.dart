@@ -1,3 +1,4 @@
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 
 import 'package:flutter/material.dart';
 import 'package:repo_easybooks/data/notifiers.dart';
@@ -14,15 +15,15 @@ class _SelectVatStatusPageState extends State<SelectVatStatusPage> {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        color: Color(0xFF161616),
+        color: EasyBooksTheme.background,
         child: Center(
           child: Container(
             width: 400,
             height: 275,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 30, 30, 30),
-              border: Border.all(color: const Color(0xFF717171)),
+              color: EasyBooksTheme.surface,
+              border: Border.all(color: EasyBooksTheme.border),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -78,7 +79,7 @@ class _SelectVatStatusPageState extends State<SelectVatStatusPage> {
                         notifier_selectedPage.value = 5; // Yes
                       },
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF6FFF43),
+                        backgroundColor: EasyBooksTheme.accent,
                         foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
