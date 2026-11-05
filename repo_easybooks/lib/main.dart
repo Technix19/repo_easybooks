@@ -8,6 +8,7 @@ import 'package:repo_easybooks/auth/auth_gate.dart';
 import 'package:repo_easybooks/login_page.dart';
 import 'package:repo_easybooks/reset_password_page.dart';
 import 'package:repo_easybooks/widget_tree.dart';
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'dart:html' as html;
 
 import 'package:supabase_flutter/supabase_flutter.dart'; // web-only
@@ -65,12 +66,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF6FFF43),
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: EasyBooksTheme.data,
 
       routes: {
         '/': (_) => const AuthGate(),
