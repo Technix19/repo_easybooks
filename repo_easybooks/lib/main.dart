@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:repo_easybooks/auth/auth_gate.dart';
 import 'package:repo_easybooks/login_page.dart';
+import 'package:repo_easybooks/landing_page.dart';
+import 'package:repo_easybooks/signup_page.dart';
 import 'package:repo_easybooks/reset_password_page.dart';
-import 'package:repo_easybooks/widget_tree.dart';
 import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'dart:html' as html;
 
@@ -69,10 +70,12 @@ class _MyAppState extends State<MyApp> {
       theme: EasyBooksTheme.data,
 
       routes: {
-        '/': (_) => const AuthGate(),
+        '/': (_) => const LandingPage(),
         '/login': (_) => const LoginPage(),
+        '/signup': (_) => const SignUpPage(),
+        '/dashboard': (_) => const AuthGate(),
         '/reset-password': (_) => const ResetPasswordPage(),
-        '/home': (_) => const WidgetTree(),
+        '/home': (_) => const AuthGate(),
       },
     );
   }
