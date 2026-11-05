@@ -1,3 +1,4 @@
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:repo_easybooks/auth/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -51,14 +52,14 @@ class _ForgotPageState extends State<ForgotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF161616),
+      backgroundColor: EasyBooksTheme.background,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Card(
-              color: const Color(0xFF1A1A1A),
+              color: EasyBooksTheme.surface,
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Form(
@@ -105,7 +106,7 @@ class _ForgotPageState extends State<ForgotPage> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6FFF43),
+                            backgroundColor: EasyBooksTheme.accent,
                             foregroundColor: Colors.black,
                             minimumSize: const Size(200, 48),
                           ),
