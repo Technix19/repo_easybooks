@@ -40,8 +40,8 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
-      // Works both from the root AuthGate and the explicit /login route.
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      // The public homepage stays at /; signed-in users open /dashboard.
+      Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
     } on AuthException catch (error) {
       if (!mounted) return;
       _showError(error.message);

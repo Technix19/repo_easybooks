@@ -53,7 +53,7 @@ class _SignUpPageState extends State<SignUpPage> {
       final response = await authService.signUpWithEmailAndPassword(email, password);
       if (!mounted) return;
       if (response.session != null) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
       } else {
         _showMessage(
           'Account created. Check your email once to confirm your address, then sign in with your password.',
