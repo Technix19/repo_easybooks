@@ -63,13 +63,14 @@ class _WidgetTreeState extends State<WidgetTree> {
       final username = (record?['username'] ?? '').toString().trim();
       final organization = (record?['org_name'] ?? '').toString().trim();
       if (username.isEmpty || organization.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Add your name and organization to finish setup.'),
-            action: SnackBarAction(
-              label: 'Open settings',
-              onPressed: _openSettings,
-            ),
+        // Preserve EasyBooks' required first-time profile setup.
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => _ProfileSetupDialog(
+            initialUsername: username,
+            initialOrganization: organization,
+            profileExists: record != null,
           ),
         );
       }
@@ -490,6 +491,160 @@ class _WidgetTreeState extends State<WidgetTree> {
           },
         );
       },
+    );
+  }
+}
+
+/// Completing a profile remains mandatory on a first sign-in, as before.
+class _ProfileSetupDialog extends StatefulWidget {
+  const _ProfileSetupDialog({
+    required this.initialUsername,
+    required this.initialOrganization,
+    required this.profileExists,
+  });
+
+  final String initialUsername;
+  final String initialOrganization;
+  final bool profileExists;
+
+  @override
+  State<_ProfileSetupDialog> createState() => _ProfileSetupDialogState();
+}
+
+class _ProfileSetupDialogState extends State<_ProfileSetupDialog> {
+  final _form = GlobalKey<FormState>();
+  late final TextEditingController _name;
+  late final TextEditingController _organization;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(text: widget.initialUsername);
+    _organization = TextEditingController(text: widget.initialOrganization);
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _organization.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_form.currentState!.validate()) return;
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    try {
+      final fields = {
+        'username': _name.text.trim(),
+        'org_name': _organization.text.trim(),
+      };
+      if (widget.profileExists) {
+        final updated = await client
+            .from('profile')
+            .update(fields)
+            .eq('user_id', user.id)
+            .select('id')
+            .maybeSingle();
+        if (updated == null) {
+          throw StateError('Your profile could not be saved.');
+        }
+      } else {
+        await client.from('profile').insert(fields).select('id').single();
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error is PostgrestException
+            ? error.message
+            : 'Could not save your profile. Please try again.';
+      });
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _signOut() async {
+    await Supabase.instance.client.auth.signOut();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true)
+        .pushNamedAndRemoveUntil('/', (_) => false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        title: const Text('Set up your workspace'),
+        content: SizedBox(
+          width: 420,
+          child: Form(
+            key: _form,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Add your name and organization to start using EasyBooks.',
+                  style: TextStyle(color: EasyBooksTheme.muted),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _name,
+                  maxLength: 60,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                  validator: (value) => (value ?? '').trim().length < 2
+                      ? 'Use at least 2 characters.'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _organization,
+                  maxLength: 100,
+                  decoration:
+                      const InputDecoration(labelText: 'Organization name'),
+                  validator: (value) => (value ?? '').trim().isEmpty
+                      ? 'Enter your organization name.'
+                      : null,
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: EasyBooksTheme.error),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : _signOut,
+            child: const Text('Sign out'),
+          ),
+          FilledButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save and continue'),
+          ),
+        ],
+      ),
     );
   }
 }
