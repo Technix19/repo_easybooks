@@ -13,7 +13,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   // Match the signed-in bookkeeping workspace for a consistent brand.
   static const onSurface = EasyBooksTheme.text;
-  static const secondaryText = EasyBooksTheme.secondaryText;
+  static const secondaryText = EasyBooksTheme.muted;
   static const accent = EasyBooksTheme.accent;
   static const stroke = EasyBooksTheme.border;
   static const panel = EasyBooksTheme.surface;
