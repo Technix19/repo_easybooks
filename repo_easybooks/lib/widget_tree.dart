@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:repo_easybooks/auth/auth_gate.dart';
-import 'package:repo_easybooks/auth/auth_service.dart';
+import 'package:repo_easybooks/account_settings_page.dart';
 import 'package:repo_easybooks/data/notifiers.dart';
 import 'package:repo_easybooks/expenses_page.dart';
 import 'package:repo_easybooks/home_page.dart';
@@ -9,28 +7,20 @@ import 'package:repo_easybooks/income_page.dart';
 import 'package:repo_easybooks/select_vat_status_page.dart';
 import 'package:repo_easybooks/tax_report_not_vat_registered_page.dart';
 import 'package:repo_easybooks/tax_report_page.dart';
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// ====== Simple knob to control ALL sidebar menu label font sizes ======
-double sidebarMenuFontSize = 14;
-
-// ====== Shared design tokens for dialogs and panels ======
-const _sbBg = Color(0xFF121212);
-const _panel = Color(0xFF1A1A1A);
-const _border = Color(0xFF3A3A3A);
-const _title = Color(0xFFEDEDED);
-const _muted = Color(0xFFBFBFBF);
-const _accent = Color(0xFF6FFF43);
-const _chipBg = Color(0xFF2A2A2A);
-
+// Keep the existing page indices. Other bookkeeping flows depend on them.
 final List<Widget> pages = const [
   HomePage(),
   IncomePage(),
   ExpensesPage(),
-  SelectVatStatusPage(), // index 3
-  TaxReportNotVatRegisteredPage(), // index 4
-  TaxReportPage(), // index 5
+  SelectVatStatusPage(),
+  TaxReportNotVatRegisteredPage(),
+  TaxReportPage(),
 ];
+
+enum _AccountAction { settings, signOut }
 
 class WidgetTree extends StatefulWidget {
   const WidgetTree({super.key});
@@ -40,693 +30,376 @@ class WidgetTree extends StatefulWidget {
 }
 
 class _WidgetTreeState extends State<WidgetTree> {
-  final authService = AuthService();
-  final supabase = Supabase.instance.client;
-  final profile_stream = Supabase.instance.client
-      .from('profile')
-      .stream(primaryKey: ['id']);
-
-  // Profile Info Dialog (values unchanged; styled UI)
-  Future<void> _profileInfoInputDialog() async {
-    String username = '';
-    String org_name = '';
-
-    final user_id = supabase.auth.currentUser!.id;
-    final check_if_theres_username = await supabase
-        .from('profile')
-        .select('username')
-        .eq('user_id', user_id)
-        .maybeSingle();
-
-    if (check_if_theres_username == null ||
-        (check_if_theres_username['username'] ?? '').toString().isEmpty) {
-      // ignore: use_build_context_synchronously
-      return showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: _sbBg,
-            surfaceTintColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: _border),
-            ),
-            title: const Text(
-              "Complete your profile",
-              style: TextStyle(color: _title, fontWeight: FontWeight.w700),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _LabeledField(
-                  label: 'Username',
-                  hint: 'Enter your username',
-                  onChanged: (v) => setState(() => username = v),
-                  icon: Icons.person,
-                ),
-                const SizedBox(height: 12),
-                _LabeledField(
-                  label: 'Business Name',
-                  hint: 'Enter your business name',
-                  onChanged: (v) => setState(() => org_name = v),
-                  icon: Icons.business_outlined,
-                ),
-              ],
-            ),
-            actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            actions: [
-              FilledButton(
-                onPressed: () async {
-                  try {
-                    if (username.isEmpty || org_name.isEmpty) {
-                      throw Exception("Please input your profile information");
-                    }
-
-                    Navigator.pop(
-                      context,
-                    ); //Debug Fixed: Put this above the await
-                    await supabase.from('profile').insert({
-                      'username': username,
-                      'org_name': org_name,
-                    });
-                    // ignore: use_build_context_synchronously
-                  } catch (e) {
-                    // ignore: use_build_context_synchronously
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text("Error: $e"),
-                      ),
-                    );
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: _accent,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text("Submit"),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
+  final _client = Supabase.instance.client;
+  late final Stream<List<Map<String, dynamic>>> _profileStream;
+  bool _signingOut = false;
 
   @override
   void initState() {
     super.initState();
-    _profileInfoInputDialog();
+    final userId = _client.auth.currentUser?.id;
+    _profileStream = userId == null
+        ? Stream.value(<Map<String, dynamic>>[])
+        : _client
+            .from('profile')
+            .stream(primaryKey: ['id'])
+            .eq('user_id', userId);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkProfileSetup());
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // ================= LEFT SIDEBAR =================
-          Container(
-            width: 250,
-            decoration: const BoxDecoration(
-              color: _sbBg,
-              border: Border(right: BorderSide(color: _border, width: 1)),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    StreamBuilder(
-                      stream: profile_stream,
-                      builder: (context, snapshot) {
-                        String orgNameLabel = 'Organization';
-                        if (snapshot.hasData &&
-                            (snapshot.data as List).isNotEmpty) {
-                          final first = (snapshot.data as List).first;
-                          final show_org_name = (first['org_name'] ?? '')
-                              .toString();
-                          if (show_org_name.isNotEmpty) {
-                            orgNameLabel = show_org_name;
-                          }
-                        }
-                        return _SidebarHeader(
-                          title: orgNameLabel,
-                          onTap: () {
-                            // Profile Information dialog
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  backgroundColor: _sbBg,
-                                  surfaceTintColor: Colors.transparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    side: const BorderSide(color: _border),
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 500,
-                                    maxWidth: 700,
-                                    maxHeight:
-                                        560, // <=== CHANGE HEIGHT HERE (default 560)
-                                  ),
-                                  insetPadding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 24,
-                                  ),
-                                  titlePadding: const EdgeInsets.fromLTRB(
-                                    20,
-                                    16,
-                                    12,
-                                    0,
-                                  ),
-                                  contentPadding: const EdgeInsets.fromLTRB(
-                                    20,
-                                    8,
-                                    20,
-                                    16,
-                                  ),
-                                  title: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Text(
-                                          "Profile Information",
-                                          style: TextStyle(
-                                            color: _title,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: _muted,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  content: StreamBuilder(
-                                    stream: profile_stream,
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const SizedBox(
-                                          height: 160,
-                                          child: Center(
-                                            child:
-                                                CircularProgressIndicator.adaptive(),
-                                          ),
-                                        );
-                                      }
-                                      final rows = snapshot.data ?? [];
-                                      if (rows.isEmpty) {
-                                        return const Text(
-                                          'No profile yet. Please add one.',
-                                          style: TextStyle(color: _muted),
-                                        );
-                                      }
+  Future<void> _checkProfileSetup() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
 
-                                      final profile = rows.first;
-                                      final username =
-                                          (profile['username'] ?? '')
-                                              .toString();
-                                      final org_name =
-                                          (profile['org_name'] ?? '')
-                                              .toString();
-                                      final email = authService
-                                          .getCurrentUserEmail();
+    try {
+      final record = await _client
+          .from('profile')
+          .select('username, org_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-                                      final str_creation_date =
-                                          (profile['created_at'] ?? '')
-                                              .toString();
-                                      final time_creation_date =
-                                          str_creation_date.isNotEmpty
-                                          ? DateTime.parse(
-                                              str_creation_date,
-                                            ).toUtc()
-                                          : null;
+      if (!mounted) return;
+      final username = (record?['username'] ?? '').toString().trim();
+      final organization = (record?['org_name'] ?? '').toString().trim();
+      if (username.isEmpty || organization.isEmpty) {
+        // Preserve EasyBooks' required first-time profile setup.
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => _ProfileSetupDialog(
+            initialUsername: username,
+            initialOrganization: organization,
+            profileExists: record != null,
+          ),
+        );
+      }
+    } catch (_) {
+      // The account menu remains accessible if the profile check cannot load.
+    }
+  }
 
-                                      return ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                          minWidth: 500,
-                                          maxWidth: 640,
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            _SectionHeader(title: 'Account'),
+  void _openSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const AccountSettingsPage(),
+      ),
+    );
+  }
 
-                                            // ====> Add Profile Picture Here <====
-                                            const SizedBox(height: 10),
-                                            _ProfileCard(
-                                              children: [
-                                                _ProfileTile(
-                                                  icon: Icons.person,
-                                                  label: 'Username',
-                                                  value: username,
-                                                  onEdit: () {
-                                                    String newUsername = '';
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return _EditDialog(
-                                                          title:
-                                                              'Update Username',
-                                                          hint: 'New Username',
-                                                          dialogHeight:
-                                                              70, // <=== CHANGE HEIGHT HERE
-                                                          onChanged: (v) =>
-                                                              setState(
-                                                                () =>
-                                                                    newUsername =
-                                                                        v,
-                                                              ),
-                                                          onSubmit: () async {
-                                                            try {
-                                                              if (newUsername
-                                                                  .isEmpty) {
-                                                                throw Exception(
-                                                                  "Username can not be empty!",
-                                                                );
-                                                              }
-                                                              await supabase
-                                                                  .from(
-                                                                    'profile',
-                                                                  )
-                                                                  .update({
-                                                                    'username':
-                                                                        newUsername,
-                                                                  })
-                                                                  .eq(
-                                                                    'user_id',
-                                                                    supabase
-                                                                        .auth
-                                                                        .currentUser!
-                                                                        .id,
-                                                                  );
-                                                              // ignore: use_build_context_synchronously
-                                                              Navigator.pop(
-                                                                context,
-                                                              );
-                                                              // ignore: use_build_context_synchronously
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                const SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .lightGreenAccent,
-                                                                  content: Text(
-                                                                    "Username has been updated!",
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            } catch (e) {
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .red,
-                                                                  content: Text(
-                                                                    "Error: $e",
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                                const Divider(
-                                                  height: 1,
-                                                  color: _border,
-                                                ),
-                                                _ProfileTile(
-                                                  icon: Icons.email_outlined,
-                                                  label: 'Email',
-                                                  value: email ?? '',
-                                                  onEdit: null,
-                                                ),
-                                                const Divider(
-                                                  height: 1,
-                                                  color: _border,
-                                                ),
-                                                _ProfileTile(
-                                                  icon: Icons
-                                                      .calendar_month_outlined,
-                                                  label: 'Created',
-                                                  value:
-                                                      time_creation_date == null
-                                                      ? ''
-                                                      : DateFormat(
-                                                          'MMMM d, y',
-                                                        ).format(
-                                                          time_creation_date
-                                                              .toLocal(),
-                                                        ),
-                                                  onEdit: null,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 16),
-                                            _SectionHeader(
-                                              title: 'Organization',
-                                            ),
-                                            const SizedBox(height: 10),
-                                            _ProfileCard(
-                                              children: [
-                                                _ProfileTile(
-                                                  icon: Icons.business_outlined,
-                                                  label: 'Business Name',
-                                                  value: org_name,
-                                                  onEdit: () {
-                                                    String newOrgName = '';
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return _EditDialog(
-                                                          title:
-                                                              'Update Business Name',
-                                                          hint:
-                                                              'New Business Name',
-                                                          dialogHeight:
-                                                              70, // <=== CHANGE HEIGHT HERE
-                                                          onChanged: (v) =>
-                                                              setState(
-                                                                () =>
-                                                                    newOrgName =
-                                                                        v,
-                                                              ),
-                                                          onSubmit: () async {
-                                                            try {
-                                                              if (newOrgName
-                                                                  .isEmpty) {
-                                                                throw Exception(
-                                                                  "New Business Name Can't Be Empty!",
-                                                                );
-                                                              }
-                                                              await supabase
-                                                                  .from(
-                                                                    'profile',
-                                                                  )
-                                                                  .update({
-                                                                    'org_name':
-                                                                        newOrgName,
-                                                                  })
-                                                                  .eq(
-                                                                    'user_id',
-                                                                    supabase
-                                                                        .auth
-                                                                        .currentUser!
-                                                                        .id,
-                                                                  );
-                                                              // ignore: use_build_context_synchronously
-                                                              Navigator.pop(
-                                                                context,
-                                                              );
-                                                              // ignore: use_build_context_synchronously
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                const SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .lightGreenAccent,
-                                                                  content: Text(
-                                                                    "Business Name has been updated successfully!",
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            } catch (e) {
-                                                              ScaffoldMessenger.of(
-                                                                context,
-                                                              ).showSnackBar(
-                                                                SnackBar(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .red,
-                                                                  content: Text(
-                                                                    "Error: $e",
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                        );
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Align(
-                                              alignment: Alignment.centerRight,
-                                              child: OutlinedButton(
-                                                onPressed: () {
-                                                  authService.signOut();
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    const SnackBar(
-                                                      backgroundColor: Colors
-                                                          .lightGreenAccent,
-                                                      content: Text(
-                                                        "You have been logged out successfully!",
-                                                      ),
-                                                    ),
-                                                  );
-                                                  Navigator.pushReplacement(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          const AuthGate(),
-                                                    ),
-                                                  );
-                                                },
-                                                style: OutlinedButton.styleFrom(
-                                                  side: const BorderSide(
-                                                    color: _border,
-                                                  ),
-                                                  foregroundColor: _title,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 16,
-                                                        vertical: 12,
-                                                      ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10,
-                                                        ),
-                                                  ),
-                                                ),
-                                                child: const Text("Sign out"),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'DASHBOARD',
+  Future<void> _signOut() async {
+    if (_signingOut) return;
+    setState(() => _signingOut = true);
+    try {
+      await _client.auth.signOut();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to sign out. Please try again.'),
+          backgroundColor: EasyBooksTheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _signingOut = false);
+    }
+  }
+
+  void _handleAccountAction(_AccountAction action, {required bool mobile}) {
+    if (mobile && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(); // Close the mobile navigation drawer.
+    }
+    switch (action) {
+      case _AccountAction.settings:
+        _openSettings();
+      case _AccountAction.signOut:
+        _signOut();
+    }
+  }
+
+  Widget _navigationItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: selected
+            ? EasyBooksTheme.elevatedSurface
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(7),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(7),
+          child: SizedBox(
+            height: 42,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 19,
+                    color: selected
+                        ? EasyBooksTheme.accent
+                        : EasyBooksTheme.muted,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      label,
                       style: TextStyle(
-                        color: _title,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                        fontSize: 20,
+                        color: selected
+                            ? EasyBooksTheme.text
+                            : EasyBooksTheme.muted,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                    // Menu
-                    ValueListenableBuilder(
-                      valueListenable: notifier_selectedPage,
-                      builder: (context, current, _) {
-                        return Column(
-                          children: [
-                            _SidebarItem(
-                              icon: Icons.grid_view_rounded,
-                              label: 'Home',
-                              selected: current == 0,
-                              onTap: () => notifier_selectedPage.value = 0,
-                              fontSize: sidebarMenuFontSize,
-                            ),
-                            _SidebarItem(
-                              icon: Icons.lock,
-                              label: 'Income',
-                              selected: current == 1,
-                              onTap: () => notifier_selectedPage.value = 1,
-                              fontSize: sidebarMenuFontSize,
-                            ),
-                            _SidebarItem(
-                              icon: Icons.bar_chart_rounded,
-                              label: 'Expenses',
-                              selected: current == 2,
-                              onTap: () => notifier_selectedPage.value = 2,
-                              fontSize: sidebarMenuFontSize,
-                            ),
-                            _SidebarItem(
-                              icon: Icons.group_rounded,
-                              label: 'Tax Report',
-                              selected:
-                                  current == 3 ||
-                                  current == 4 ||
-                                  current ==
-                                      5, // ✅ Highlight all 3 related pages
-                              onTap: () => notifier_selectedPage.value =
-                                  3, // Always go to main SelectVatStatusPage when clicked
-                              fontSize: sidebarMenuFontSize,
-                            ),
-                          ],
-                        );
-                      },
+  Widget _sidebar({
+    required bool mobile,
+    required String organization,
+    required String username,
+    required String email,
+  }) {
+    final initials =
+        username.trim().isEmpty ? '?' : username.trim()[0].toUpperCase();
+
+    return Container(
+      width: 248,
+      decoration: const BoxDecoration(
+        color: EasyBooksTheme.sidebar,
+        border: Border(
+          right: BorderSide(color: EasyBooksTheme.border),
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 20, 14, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 25,
+                      color: EasyBooksTheme.accent,
                     ),
-                    const Spacer(),
-
-                    // ===== Bottom brand: just the image (no text) =====
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 11),
-                        child: Image.asset(
-                          'assets/images/easybooks_logo.png',
-                          fit: BoxFit.contain,
-                        ),
+                    SizedBox(width: 11),
+                    Text(
+                      'EasyBooks',
+                      style: TextStyle(
+                        color: EasyBooksTheme.text,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.6,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-
-          // ================= RIGHT CONTENT =================
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: notifier_selectedPage,
-              builder: (context, selectedPage, _) {
-                return pages.elementAt(selectedPage);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ===== Smaller visual widgets =====
-class _SidebarHeader extends StatelessWidget {
-  const _SidebarHeader({required this.title, this.onTap});
-
-  final String title;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 20,
-            backgroundColor: _chipBg,
-            child: Icon(Icons.person, color: Colors.white, size: 20),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _title,
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SidebarItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback? onTap;
-  final double? fontSize;
-
-  const _SidebarItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.fontSize,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool enabled = onTap != null;
-    final Color textColor = selected
-        ? Colors.black
-        : (enabled ? const Color(0xFFBFBFBF) : const Color(0xFF8A8A8A));
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: selected ? _accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: selected ? Colors.black : textColor),
-              const SizedBox(width: 10),
-              Expanded(
+              const SizedBox(height: 34),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  'Workspace',
                   style: TextStyle(
-                    fontSize: fontSize ?? 14,
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
+                    color: EasyBooksTheme.muted.withOpacity(0.9),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _openSettings,
+                  borderRadius: BorderRadius.circular(7),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            organization.isEmpty
+                                ? 'Set up organization'
+                                : organization,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: EasyBooksTheme.text,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: EasyBooksTheme.muted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 23),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Overview',
+                  style: TextStyle(
+                    color: EasyBooksTheme.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ValueListenableBuilder(
+                valueListenable: notifier_selectedPage,
+                builder: (context, current, _) {
+                  void select(int index) {
+                    notifier_selectedPage.value = index;
+                    if (mobile) Navigator.of(context).pop();
+                  }
+
+                  return Column(
+                    children: [
+                      _navigationItem(
+                        icon: Icons.space_dashboard_outlined,
+                        label: 'Dashboard',
+                        selected: current == 0,
+                        onTap: () => select(0),
+                      ),
+                      _navigationItem(
+                        icon: Icons.call_received_outlined,
+                        label: 'Income',
+                        selected: current == 1,
+                        onTap: () => select(1),
+                      ),
+                      _navigationItem(
+                        icon: Icons.call_made_outlined,
+                        label: 'Expenses',
+                        selected: current == 2,
+                        onTap: () => select(2),
+                      ),
+                      _navigationItem(
+                        icon: Icons.receipt_long_outlined,
+                        label: 'Tax reports',
+                        selected: current == 3 ||
+                            current == 4 ||
+                            current == 5,
+                        onTap: () => select(3),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const Spacer(),
+              const Divider(color: EasyBooksTheme.border, height: 1),
+              const SizedBox(height: 12),
+              PopupMenuButton<_AccountAction>(
+                tooltip: 'Open account menu',
+                position: PopupMenuPosition.over,
+                onSelected: (action) =>
+                    _handleAccountAction(action, mobile: mobile),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: _AccountAction.settings,
+                    child: Row(
+                      children: [
+                        Icon(Icons.manage_accounts_outlined, size: 19),
+                        SizedBox(width: 12),
+                        Text('Account settings'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: _AccountAction.signOut,
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, size: 19),
+                        SizedBox(width: 12),
+                        Text('Sign out'),
+                      ],
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: EasyBooksTheme.elevatedSurface,
+                        child: Text(
+                          initials,
+                          style: const TextStyle(
+                            color: EasyBooksTheme.accent,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              username.isEmpty ? 'My account' : username,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: EasyBooksTheme.text,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              email,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: EasyBooksTheme.muted,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.more_horiz,
+                        size: 20,
+                        color: EasyBooksTheme.muted,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -736,233 +409,242 @@ class _SidebarItem extends StatelessWidget {
       ),
     );
   }
-}
 
-// Sections & Cards for Profile dialog
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-  final String title;
+  Widget _selectedContent() {
+    return ValueListenableBuilder(
+      valueListenable: notifier_selectedPage,
+      builder: (context, selected, _) {
+        final index = selected is int &&
+                selected >= 0 &&
+                selected < pages.length
+            ? selected
+            : 0;
+        // Existing EasyBooks page widgets already return Expanded.
+        return pages[index];
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: _muted,
-        fontWeight: FontWeight.w700,
-        fontSize: 12,
-        letterSpacing: 0.6,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mobile = constraints.maxWidth < 850;
+        return StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _profileStream,
+          builder: (context, snapshot) {
+            final profile = snapshot.data != null &&
+                    snapshot.data!.isNotEmpty
+                ? snapshot.data!.first
+                : <String, dynamic>{};
+            final organization =
+                (profile['org_name'] ?? '').toString().trim();
+            final username =
+                (profile['username'] ?? '').toString().trim();
+            final email = _client.auth.currentUser?.email ?? '';
+
+            return Scaffold(
+              backgroundColor: EasyBooksTheme.background,
+              drawer: mobile
+                  ? Drawer(
+                      width: 248,
+                      child: _sidebar(
+                        mobile: true,
+                        organization: organization,
+                        username: username,
+                        email: email,
+                      ),
+                    )
+                  : null,
+              appBar: mobile
+                  ? AppBar(
+                      title: const Text(
+                        'EasyBooks',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      actions: [
+                        IconButton(
+                          tooltip: 'Account settings',
+                          icon: const Icon(Icons.account_circle_outlined),
+                          onPressed: _openSettings,
+                        ),
+                      ],
+                    )
+                  : null,
+              body: mobile
+                  ? Column(children: [_selectedContent()])
+                  : Row(
+                      children: [
+                        _sidebar(
+                          mobile: false,
+                          organization: organization,
+                          username: username,
+                          email: email,
+                        ),
+                        _selectedContent(),
+                      ],
+                    ),
+            );
+          },
+        );
+      },
     );
   }
 }
 
-class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.children});
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _border),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(children: children),
-    );
-  }
-}
-
-class _ProfileTile extends StatelessWidget {
-  const _ProfileTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.onEdit,
+/// Completing a profile remains mandatory on a first sign-in, as before.
+class _ProfileSetupDialog extends StatefulWidget {
+  const _ProfileSetupDialog({
+    required this.initialUsername,
+    required this.initialOrganization,
+    required this.profileExists,
   });
 
-  final IconData icon;
-  final String label;
-  final String value;
-  final VoidCallback? onEdit;
+  final String initialUsername;
+  final String initialOrganization;
+  final bool profileExists;
+
+  @override
+  State<_ProfileSetupDialog> createState() => _ProfileSetupDialogState();
+}
+
+class _ProfileSetupDialogState extends State<_ProfileSetupDialog> {
+  final _form = GlobalKey<FormState>();
+  late final TextEditingController _name;
+  late final TextEditingController _organization;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(text: widget.initialUsername);
+    _organization = TextEditingController(text: widget.initialOrganization);
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _organization.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_form.currentState!.validate()) return;
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    try {
+      final fields = {
+        'username': _name.text.trim(),
+        'org_name': _organization.text.trim(),
+      };
+      if (widget.profileExists) {
+        final updated = await client
+            .from('profile')
+            .update(fields)
+            .eq('user_id', user.id)
+            .select('id')
+            .maybeSingle();
+        if (updated == null) {
+          throw StateError('Your profile could not be saved.');
+        }
+      } else {
+        await client.from('profile').insert(fields).select('id').single();
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error is PostgrestException
+            ? error.message
+            : 'Could not save your profile. Please try again.';
+      });
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _signOut() async {
+    await Supabase.instance.client.auth.signOut();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true)
+        .pushNamedAndRemoveUntil('/', (_) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      minLeadingWidth: 0,
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: _chipBg,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: _title, size: 20),
-      ),
-      title: Text(
-        label,
-        style: const TextStyle(
-          color: _muted,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      subtitle: Text(
-        value,
-        style: const TextStyle(
-          color: _title,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: onEdit == null
-          ? null
-          : TextButton.icon(
-              onPressed: onEdit,
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: _accent,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        title: const Text('Set up your workspace'),
+        content: SizedBox(
+          width: 420,
+          child: Form(
+            key: _form,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Add your name and organization to start using EasyBooks.',
+                  style: TextStyle(color: EasyBooksTheme.muted),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _name,
+                  maxLength: 60,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                  validator: (value) => (value ?? '').trim().length < 2
+                      ? 'Use at least 2 characters.'
+                      : null,
                 ),
-              ),
-              icon: const Icon(Icons.edit_outlined, size: 16),
-              label: const Text(
-                'Edit',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-    );
-  }
-}
-
-// Small "Update ___" dialog (height adjustable)
-class _EditDialog extends StatelessWidget {
-  const _EditDialog({
-    required this.title,
-    required this.hint,
-    required this.onChanged,
-    required this.onSubmit,
-    this.dialogHeight,
-    this.dialogWidth,
-  });
-
-  final String title;
-  final String hint;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onSubmit;
-  final double? dialogHeight;
-  final double? dialogWidth;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: _sbBg,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: _border),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(color: _title, fontWeight: FontWeight.w700),
-      ),
-      content: SizedBox(
-        width: dialogWidth ?? 520,
-        height: dialogHeight ?? 180, // <=== CHANGE HEIGHT HERE
-        child: _LabeledField(
-          label: title,
-          hint: hint,
-          onChanged: onChanged,
-          icon: Icons.edit_outlined,
-        ),
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          style: TextButton.styleFrom(foregroundColor: _muted),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: onSubmit,
-          style: FilledButton.styleFrom(
-            backgroundColor: _accent,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Text("Submit"),
-        ),
-      ],
-    );
-  }
-}
-
-// Reusable styled field
-class _LabeledField extends StatelessWidget {
-  const _LabeledField({
-    required this.label,
-    required this.hint,
-    required this.onChanged,
-    required this.icon,
-  });
-
-  final String label;
-  final String hint;
-  final ValueChanged<String> onChanged;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: _muted,
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          onChanged: onChanged,
-          style: const TextStyle(color: _title),
-          cursorColor: _accent,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFF8A8A8A)),
-            prefixIcon: Icon(icon, color: _muted, size: 18),
-            isDense: true,
-            filled: true,
-            fillColor: _panel,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _accent, width: 1.2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _organization,
+                  maxLength: 100,
+                  decoration:
+                      const InputDecoration(labelText: 'Organization name'),
+                  validator: (value) => (value ?? '').trim().isEmpty
+                      ? 'Enter your organization name.'
+                      : null,
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: EasyBooksTheme.error),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : _signOut,
+            child: const Text('Sign out'),
+          ),
+          FilledButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save and continue'),
+          ),
+        ],
+      ),
     );
   }
 }

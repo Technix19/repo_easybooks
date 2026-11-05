@@ -1,3 +1,4 @@
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:repo_easybooks/auth/auth_service.dart';
@@ -61,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF161616),
+      backgroundColor: EasyBooksTheme.background,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -144,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                           height: 48,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6FFF43),
+                              backgroundColor: EasyBooksTheme.accent,
                               foregroundColor: Colors.black,
                             ),
                             onPressed: _isSubmitting ? null : _logIn,

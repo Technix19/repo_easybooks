@@ -7,6 +7,7 @@ import 'package:repo_easybooks/data/export_table_as_csv.dart';
 import 'package:repo_easybooks/formula.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 
 class IncomePage extends StatefulWidget {
   const IncomePage({super.key});
@@ -47,12 +48,6 @@ double _niceNum(double range, {required bool round}) {
 class _IncomePageState extends State<IncomePage> {
   final formula = Formula();
   final supabase = Supabase.instance.client;
-
-  // Palette (used for fills if needed)
-  final List<Color> gradientColors = const [
-    Color(0xFF232B6E),
-    Color(0xFF02D39A),
-  ];
 
   // Currency formatting for list “More Info”
   final _php = NumberFormat.currency(
@@ -136,13 +131,13 @@ class _IncomePageState extends State<IncomePage> {
   }
 
   // ---------- EXPENSES-PAGE DESIGN PRIMITIVES ----------
-  static const _bg = Color(0xFF161616);
-  static const _card = Color(0xFF1E1E1E);
-  static const _border = Color(0xFF717171);
-  static const _thinBorder = Color(0xFF3A3A3A);
-  static const _muted = Color(0xFFBDBDBD);
-  static const _muted2 = Color(0xFF9E9E9E);
-  static const _accent = Color(0xFF6FFF43);
+  static const _bg = EasyBooksTheme.background;
+  static const _card = EasyBooksTheme.surface;
+  static const _border = EasyBooksTheme.border;
+  static const _thinBorder = EasyBooksTheme.border;
+  static const _muted = EasyBooksTheme.muted;
+  static const _muted2 = EasyBooksTheme.muted;
+  static const _accent = EasyBooksTheme.accent;
 
   InputDecoration _input(String label) => InputDecoration(
         labelText: label,
@@ -416,15 +411,7 @@ class _IncomePageState extends State<IncomePage> {
                   barWidth: 3,
                   dotData: const FlDotData(show: true),
                   color: Theme.of(context).colorScheme.primary,
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors:
-                          gradientColors.map((c) => c.withOpacity(0.30)).toList(),
-                    ),
-                  ),
+                  belowBarData: BarAreaData(show: false),
                 ),
               ],
               lineTouchData: LineTouchData(

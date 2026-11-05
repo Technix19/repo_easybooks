@@ -1,3 +1,4 @@
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -242,8 +243,8 @@ class _TaxReportNotVatRegisteredPageState
   Widget _card({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        border: Border.all(color: const Color(0xFF3A3A3A)),
+        color: EasyBooksTheme.surface,
+        border: Border.all(color: EasyBooksTheme.border),
         borderRadius: BorderRadius.circular(12),
       ),
       child: child,
@@ -259,13 +260,13 @@ class _TaxReportNotVatRegisteredPageState
           Container(
             height: 75,
             decoration: const BoxDecoration(
-              color: Color(0xFF161616),
-              border: Border(bottom: BorderSide(color: Color(0xFFA4A4A4))),
+              color: EasyBooksTheme.background,
+              border: Border(bottom: BorderSide(color: EasyBooksTheme.muted)),
             ),
           ),
           Expanded(
             child: Container(
-              color: const Color(0xFF161616),
+              color: EasyBooksTheme.background,
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Center(
@@ -342,7 +343,7 @@ class _TaxReportNotVatRegisteredPageState
                                   ),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF3A3A3A),
+                                  color: EasyBooksTheme.border,
                                   height: 1,
                                 ),
 
@@ -351,7 +352,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_gross_sales),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 
@@ -360,7 +361,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_cogs),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 
@@ -369,7 +370,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_gross_profit),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 
@@ -378,7 +379,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_expenses),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 
@@ -387,7 +388,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_net_profit_before_taxes),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 
@@ -396,7 +397,7 @@ class _TaxReportNotVatRegisteredPageState
                                   _nf.format(total_gross_sales * 0.03),
                                 ),
                                 const Divider(
-                                  color: Color(0xFF2A2A2A),
+                                  color: EasyBooksTheme.elevatedSurface,
                                   height: 1,
                                 ),
 

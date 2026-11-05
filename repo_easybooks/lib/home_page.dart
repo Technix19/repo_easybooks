@@ -1,17 +1,18 @@
 import 'dart:math' as math;
+import 'dart:ui' show FontFeature;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ===== Project color palette (same as Expenses/Income) =====
-const _bg = Color(0xFF161616);
-const _panel = Color(0xFF1E1E1E);
-const _muted = Color(0xFFA4A4A4);
-const _muted2 = Color(0xFF9E9E9E);
-const _border = Color(0xFF717171);
-const _text = Colors.white;
-const _dim = Color(0xFF9E9E9E);
+const _bg = Color(0xFF111719);
+const _panel = Color(0xFF1C2729);
+const _muted = Color(0xFFA6B7B4);
+const _muted2 = Color(0xFFA6B7B4);
+const _border = Color(0xFF334044);
+const _text = Color(0xFFF0F5F3);
+const _dim = Color(0xFFA6B7B4);
 const _accent = Color(0xFF02D39A);
 
 class HomePage extends StatefulWidget {
@@ -52,8 +53,6 @@ double _niceNum(double range, {required bool round}) {
 
 class _HomePageState extends State<HomePage> {
   final supabase = Supabase.instance.client;
-
-  final List<Color> gradientColors = const [Color(0xFF232B6E), _accent];
 
   final _money = NumberFormat.currency(
     locale: 'en_PH',
@@ -295,18 +294,9 @@ class _HomePageState extends State<HomePage> {
                   spots: spots,
                   isCurved: true,
                   barWidth: 3,
-                  dotData: const FlDotData(show: true),
+                  dotData: const FlDotData(show: false),
                   color: _accent,
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: gradientColors
-                          .map((c) => c.withOpacity(0.3))
-                          .toList(),
-                    ),
-                  ),
+                  belowBarData: BarAreaData(show: false),
                 ),
               ],
             ),
@@ -320,70 +310,57 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final rangeLabel =
-        'Date Range: ${DateFormat('MMM d, yyyy').format(utcStartDate.toLocal())} → ${DateFormat('MMM d, yyyy').format(utcEndDate.toLocal())}';
+        '${DateFormat('MMM d, yyyy').format(utcStartDate.toLocal())} – ${DateFormat('MMM d, yyyy').format(utcEndDate.toLocal())}';
+
+    Widget chartPanel(Future<List<dynamic>> future, String title, String key) {
+      return _ChartCard(
+        child: FutureBuilder<List<dynamic>>(
+          future: future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const _Loading();
+            }
+            final rows = snapshot.data ?? <dynamic>[];
+            return buildDailyLineChart(
+              context: context,
+              rows: rows,
+              title: title,
+              valueKey: key,
+            );
+          },
+        ),
+      );
+    }
 
     return Expanded(
       child: Container(
         color: _bg,
         child: Column(
           children: [
-            // Top bar (same size 75)
             Container(
-              height: 75,
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: const BoxDecoration(
                 color: _bg,
-                border: Border(bottom: BorderSide(color: _muted)),
+                border: Border(bottom: BorderSide(color: _border)),
               ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Dashboard ',
-                          style: TextStyle(
-                            color: _muted,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        TextSpan(
-                          text: '/ ',
-                          style: TextStyle(
-                            color: _muted2,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Home',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Overview',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: _text,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),
-
-            // ==== Date Range Bar (below top bar) ====
-            Container(
-              height: 72,
-              width: double.infinity,
-              decoration: const BoxDecoration(color: _bg),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 2),
               child: Row(
                 children: [
-                  // Range pill button
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () async {
+                  OutlinedButton.icon(
+                    onPressed: () async {
                       final now = DateTime.now();
                       final picked = await showDateRangePicker(
                         context: context,
@@ -395,7 +372,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       );
                       if (picked == null) return;
-
                       setState(() {
                         utcStartDate = DateTime.utc(
                           picked.start.year,
@@ -410,142 +386,116 @@ class _HomePageState extends State<HomePage> {
                         salesFuture = _fetchSales();
                         expensesFuture = _fetchExpenses();
                       });
-
-                      // Update KPIs too
                       _refreshData();
                     },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _border),
-                        color: const Color(0xFF242424),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            size: 20,
-                            color: _text,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Pick Date Range',
-                            style: TextStyle(color: _text),
-                          ),
-                        ],
-                      ),
-                    ),
+                    icon: const Icon(Icons.calendar_today_outlined, size: 17),
+                    label: const Text('Date range'),
                   ),
-                  const SizedBox(width: 12),
-                  // Current range label
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       rangeLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: _text,
-                        fontWeight: FontWeight.w600,
+                        color: _muted,
+                        fontSize: 13,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // Body
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // KPI Cards
-                    Row(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final stacked = constraints.maxWidth < 740;
+                  final sales = _KpiCard(
+                    title: 'Gross sales',
+                    icon: Icons.trending_up,
+                    value: _money.format(show_total_gross_sales),
+                  );
+                  final expenses = _KpiCard(
+                    title: 'Expenses',
+                    icon: Icons.trending_down,
+                    value: _money.format(show_total_expenses),
+                  );
+                  final profit = _KpiCard(
+                    title: 'Gross profit',
+                    icon: Icons.account_balance_wallet_outlined,
+                    value: _money.format(
+                      show_total_gross_sales - show_total_expenses,
+                    ),
+                    emphasis: true,
+                  );
+
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: _KpiCard(
-                            title: 'Total Gross Sales',
-                            icon: Icons.attach_money,
-                            value: _money.format(show_total_gross_sales),
+                        if (stacked) ...[
+                          sales,
+                          const SizedBox(height: 10),
+                          expenses,
+                          const SizedBox(height: 10),
+                          profit,
+                        ] else
+                          Row(
+                            children: [
+                              Expanded(child: sales),
+                              const SizedBox(width: 12),
+                              Expanded(child: expenses),
+                              const SizedBox(width: 12),
+                              Expanded(child: profit),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _KpiCard(
-                            title: 'Total Expenses',
-                            icon: Icons.payment,
-                            value: _money.format(show_total_expenses),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _KpiCard(
-                            title: 'Gross Profit',
-                            icon: Icons.currency_exchange_outlined,
-                            value: _money.format(
-                              show_total_gross_sales - show_total_expenses,
+                        const SizedBox(height: 18),
+                        if (stacked) ...[
+                          SizedBox(
+                            height: 310,
+                            child: chartPanel(
+                              salesFuture,
+                              'Gross sales',
+                              'total_sales',
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 310,
+                            child: chartPanel(
+                              expensesFuture,
+                              'Expenses',
+                              'total_expenses',
+                            ),
+                          ),
+                        ] else
+                          SizedBox(
+                            height: 360,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: chartPanel(
+                                    salesFuture,
+                                    'Gross sales',
+                                    'total_sales',
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: chartPanel(
+                                    expensesFuture,
+                                    'Expenses',
+                                    'total_expenses',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-
-                    // Charts Row
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _ChartCard(
-                              child: FutureBuilder<List<dynamic>>(
-                                future: salesFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const _Loading();
-                                  }
-                                  final rows = snapshot.data ?? <dynamic>[];
-                                  return buildDailyLineChart(
-                                    context: context,
-                                    rows: rows,
-                                    title: 'Total Gross Sales',
-                                    valueKey: 'total_sales',
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _ChartCard(
-                              child: FutureBuilder<List<dynamic>>(
-                                future: expensesFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const _Loading();
-                                  }
-                                  final rows = snapshot.data ?? <dynamic>[];
-                                  return buildDailyLineChart(
-                                    context: context,
-                                    rows: rows,
-                                    title: 'Total Expenses',
-                                    valueKey: 'total_expenses',
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -562,53 +512,53 @@ class _KpiCard extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.value,
+    this.emphasis = false,
   });
 
   final String title;
   final IconData icon;
   final String value;
+  final bool emphasis;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
+      height: 108,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _border),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: _accent.withOpacity(0.15),
-            ),
-            // ✅ uses the icon passed from parent
-            child: Icon(icon, color: _accent),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(title, style: const TextStyle(color: _dim, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(color: _muted, fontSize: 13),
                 ),
-              ],
+              ),
+              Icon(
+                icon,
+                size: 17,
+                color: emphasis ? _accent : _muted,
+              ),
+            ],
+          ),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: emphasis ? _accent : _text,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],
@@ -627,7 +577,7 @@ class _ChartCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _border),
       ),
       padding: const EdgeInsets.all(12),

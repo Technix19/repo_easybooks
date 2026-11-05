@@ -1,3 +1,4 @@
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:repo_easybooks/auth/auth_service.dart';
 
@@ -90,7 +91,7 @@ class _SignUpPageState extends State<SignUpPage> {
           margin: EdgeInsets.symmetric(horizontal: 24),
           padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Color(0xFF1A1A1A),
+            color: EasyBooksTheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white12),
           ),
@@ -164,7 +165,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(height: 35),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF6FFF43),
+                    backgroundColor: EasyBooksTheme.accent,
                     foregroundColor: Colors.black,
                     minimumSize: Size(200, 48),
                     shape: RoundedRectangleBorder(
@@ -198,7 +199,7 @@ class _SignUpPageState extends State<SignUpPage> {
           borderSide: BorderSide(color: Colors.white38),
         ),
         focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFF6FFF43)),
+          borderSide: BorderSide(color: EasyBooksTheme.accent),
         ),
       ),
     );
@@ -228,7 +229,7 @@ class _SignUpPageState extends State<SignUpPage> {
           borderSide: BorderSide(color: Colors.white38),
         ),
         focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFF6FFF43)),
+          borderSide: BorderSide(color: EasyBooksTheme.accent),
         ),
       ),
     );
