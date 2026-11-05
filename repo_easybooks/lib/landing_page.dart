@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:repo_easybooks/theme/easybooks_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Public product page, based on the user's four-page SaaS reference.
@@ -10,12 +11,13 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  static const ink = Color(0xFF172321);
-  static const muted = Color(0xFF64716E);
-  static const green = Color(0xFF087F64);
-  static const line = Color(0xFFE5EAE8);
-  static const white = Color(0xFFFFFFFF);
-  static const light = Color(0xFFF7F9F8);
+  // Match the signed-in bookkeeping workspace for a consistent brand.
+  static const onSurface = EasyBooksTheme.text;
+  static const secondaryText = EasyBooksTheme.secondaryText;
+  static const accent = EasyBooksTheme.accent;
+  static const stroke = EasyBooksTheme.border;
+  static const panel = EasyBooksTheme.surface;
+  static const alternateBackground = EasyBooksTheme.sidebar;
 
   final scroll = ScrollController();
   final features = GlobalKey();
@@ -68,12 +70,12 @@ class _LandingPageState extends State<LandingPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.account_balance_wallet_outlined,
-                  size: 26, color: green),
+                  size: 26, color: accent),
               SizedBox(width: 9),
               Text(
                 'EasyBooks',
                 style: TextStyle(
-                  color: ink,
+                  color: onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.7,
@@ -87,7 +89,7 @@ class _LandingPageState extends State<LandingPage> {
   Widget link(String title, VoidCallback action) => TextButton(
         onPressed: action,
         style: TextButton.styleFrom(
-          foregroundColor: muted,
+          foregroundColor: secondaryText,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         ),
         child: Text(
@@ -99,14 +101,13 @@ class _LandingPageState extends State<LandingPage> {
   Widget primary(
     String title,
     VoidCallback action, {
-    bool inverted = false,
     bool small = false,
   }) =>
       FilledButton(
         onPressed: action,
         style: FilledButton.styleFrom(
-          backgroundColor: inverted ? white : ink,
-          foregroundColor: inverted ? ink : white,
+          backgroundColor: accent,
+          foregroundColor: EasyBooksTheme.background,
           shape: const StadiumBorder(),
           minimumSize: Size(0, small ? 40 : 49),
           padding: EdgeInsets.symmetric(
@@ -127,8 +128,8 @@ class _LandingPageState extends State<LandingPage> {
     final narrow = width < 860;
     return DecoratedBox(
       decoration: const BoxDecoration(
-        color: white,
-        border: Border(bottom: BorderSide(color: line)),
+        color: panel,
+        border: Border(bottom: BorderSide(color: stroke)),
       ),
       child: Center(
         child: ConstrainedBox(
@@ -163,7 +164,7 @@ class _LandingPageState extends State<LandingPage> {
                     ),
                   PopupMenuButton<int>(
                     tooltip: 'Navigation menu',
-                    icon: const Icon(Icons.menu, color: ink),
+                    icon: const Icon(Icons.menu, color: onSurface),
                     onSelected: (choice) {
                       if (choice == 0) jumpTo(features);
                       if (choice == 1) jumpTo(steps);
@@ -199,7 +200,7 @@ class _LandingPageState extends State<LandingPage> {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: ink,
+              color: onSurface,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.1,
               height: 1.14,
@@ -213,7 +214,7 @@ class _LandingPageState extends State<LandingPage> {
               description,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: muted, fontSize: 15, height: 1.65),
+                  color: secondaryText, fontSize: 15, height: 1.65),
             ),
           ),
         ],
@@ -234,7 +235,7 @@ class _LandingPageState extends State<LandingPage> {
             'A simpler way to keep your books in order',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: green,
+              color: accent,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -246,7 +247,7 @@ class _LandingPageState extends State<LandingPage> {
               'Know where your\nbusiness money goes.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: ink,
+                color: onSurface,
                 fontWeight: FontWeight.w800,
                 height: 1.07,
                 fontSize: mobile ? 40 : (width < 1090 ? 57 : 69),
@@ -261,7 +262,7 @@ class _LandingPageState extends State<LandingPage> {
               'Record income and expenses, follow gross profit, and prepare tax reports from one straightforward dashboard.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: muted,
+                color: secondaryText,
                 fontSize: mobile ? 15 : 17,
                 height: 1.65,
               ),
@@ -280,8 +281,8 @@ class _LandingPageState extends State<LandingPage> {
               OutlinedButton(
                 onPressed: () => jumpTo(features),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: ink,
-                  side: const BorderSide(color: line),
+                  foregroundColor: onSurface,
+                  side: const BorderSide(color: stroke),
                   minimumSize: const Size(0, 49),
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   shape: const StadiumBorder(),
@@ -302,12 +303,12 @@ class _LandingPageState extends State<LandingPage> {
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: white,
-                    border: Border.all(color: line),
+                    color: panel,
+                    border: Border.all(color: stroke),
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x0B172321),
+                        color: Color(0x44000000),
                         offset: Offset(0, 13),
                         blurRadius: 29,
                       ),
@@ -324,11 +325,11 @@ class _LandingPageState extends State<LandingPage> {
                         semanticLabel:
                             'EasyBooks dashboard showing income, expenses, gross profit, and daily charts',
                         errorBuilder: (_, __, ___) => const ColoredBox(
-                          color: ink,
+                          color: EasyBooksTheme.elevatedSurface,
                           child: Center(
                             child: Text(
                               'EasyBooks dashboard preview',
-                              style: TextStyle(color: white),
+                              style: TextStyle(color: onSurface),
                             ),
                           ),
                         ),
@@ -339,13 +340,13 @@ class _LandingPageState extends State<LandingPage> {
                 const SizedBox(height: 13),
                 const Text(
                   'A look inside the EasyBooks dashboard',
-                  style: TextStyle(color: muted, fontSize: 12),
+                  style: TextStyle(color: secondaryText, fontSize: 12),
                 ),
               ],
             ),
           ),
           SizedBox(height: mobile ? 55 : 82),
-          const Divider(color: line),
+          const Divider(color: stroke),
           const SizedBox(height: 26),
           const Wrap(
             alignment: WrapAlignment.center,
@@ -381,7 +382,7 @@ class _LandingPageState extends State<LandingPage> {
     ];
     return Container(
       key: features,
-      color: light,
+      color: alternateBackground,
       padding: EdgeInsets.symmetric(
         horizontal: width < 700 ? 20 : 32,
         vertical: width < 700 ? 70 : 104,
@@ -415,19 +416,19 @@ class _LandingPageState extends State<LandingPage> {
                             constraints: const BoxConstraints(minHeight: 188),
                             padding: const EdgeInsets.all(26),
                             decoration: BoxDecoration(
-                              color: white,
-                              border: Border.all(color: line),
+                              color: panel,
+                              border: Border.all(color: stroke),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(item.icon, size: 23, color: green),
+                                Icon(item.icon, size: 23, color: accent),
                                 const SizedBox(height: 21),
                                 Text(
                                   item.title,
                                   style: const TextStyle(
-                                    color: ink,
+                                    color: onSurface,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -436,7 +437,7 @@ class _LandingPageState extends State<LandingPage> {
                                 Text(
                                   item.description,
                                   style: const TextStyle(
-                                    color: muted,
+                                    color: secondaryText,
                                     height: 1.6,
                                     fontSize: 13,
                                   ),
@@ -500,18 +501,18 @@ class _LandingPageState extends State<LandingPage> {
                               Text(
                                 '0' + (index + 1).toString(),
                                 style: const TextStyle(
-                                  color: green,
+                                  color: accent,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                               const SizedBox(height: 15),
-                              const Divider(color: line),
+                              const Divider(color: stroke),
                               const SizedBox(height: 15),
                               Text(
                                 entries[index].title,
                                 style: const TextStyle(
-                                  color: ink,
+                                  color: onSurface,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -520,7 +521,7 @@ class _LandingPageState extends State<LandingPage> {
                               Text(
                                 entries[index].description,
                                 style: const TextStyle(
-                                  color: muted,
+                                  color: secondaryText,
                                   fontSize: 14,
                                   height: 1.6,
                                 ),
@@ -554,7 +555,7 @@ class _LandingPageState extends State<LandingPage> {
     ];
     return Container(
       key: faq,
-      color: light,
+      color: alternateBackground,
       padding: EdgeInsets.symmetric(
         horizontal: width < 700 ? 20 : 32,
         vertical: width < 700 ? 72 : 104,
@@ -571,7 +572,7 @@ class _LandingPageState extends State<LandingPage> {
               const SizedBox(height: 44),
               for (final entry in entries) ...[
                 Theme(
-                  data: ThemeData.light(useMaterial3: true)
+                  data: Theme.of(context)
                       .copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     tilePadding: const EdgeInsets.symmetric(
@@ -579,12 +580,12 @@ class _LandingPageState extends State<LandingPage> {
                       vertical: 7,
                     ),
                     childrenPadding: const EdgeInsets.fromLTRB(5, 0, 28, 22),
-                    iconColor: green,
-                    collapsedIconColor: muted,
+                    iconColor: accent,
+                    collapsedIconColor: secondaryText,
                     title: Text(
                       entry.question,
                       style: const TextStyle(
-                        color: ink,
+                        color: onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -595,7 +596,7 @@ class _LandingPageState extends State<LandingPage> {
                         child: Text(
                           entry.answer,
                           style: const TextStyle(
-                            color: muted,
+                            color: secondaryText,
                             height: 1.65,
                             fontSize: 14,
                           ),
@@ -604,7 +605,7 @@ class _LandingPageState extends State<LandingPage> {
                     ],
                   ),
                 ),
-                const Divider(color: line, height: 1),
+                const Divider(color: stroke, height: 1),
               ],
             ],
           ),
@@ -628,7 +629,8 @@ class _LandingPageState extends State<LandingPage> {
                 vertical: width < 700 ? 55 : 76,
               ),
               decoration: BoxDecoration(
-                color: ink,
+                color: EasyBooksTheme.elevatedSurface,
+                border: Border.all(color: stroke),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -637,7 +639,7 @@ class _LandingPageState extends State<LandingPage> {
                     'Make sense of your business numbers.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: white,
+                      color: onSurface,
                       fontWeight: FontWeight.w800,
                       fontSize: width < 700 ? 31 : 39,
                       height: 1.15,
@@ -649,7 +651,7 @@ class _LandingPageState extends State<LandingPage> {
                     'One place to record activity, follow your finances, and prepare reports.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xFFD0DBD7),
+                      color: secondaryText,
                       fontSize: 15,
                       height: 1.6,
                     ),
@@ -658,7 +660,6 @@ class _LandingPageState extends State<LandingPage> {
                   primary(
                     signedIn ? 'Open dashboard' : 'Get started',
                     () => openApp(createAccount: true),
-                    inverted: true,
                   ),
                 ],
               ),
@@ -669,7 +670,7 @@ class _LandingPageState extends State<LandingPage> {
 
   Widget footer(double width) => Container(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: line)),
+          border: Border(top: BorderSide(color: stroke)),
         ),
         padding: EdgeInsets.symmetric(
           horizontal: width < 700 ? 20 : 32,
@@ -692,7 +693,7 @@ class _LandingPageState extends State<LandingPage> {
                         brand(),
                         const Text(
                           'A straightforward bookkeeping workspace.',
-                          style: TextStyle(color: muted, fontSize: 13),
+                          style: TextStyle(color: secondaryText, fontSize: 13),
                         ),
                       ],
                     ),
@@ -709,12 +710,12 @@ class _LandingPageState extends State<LandingPage> {
                   ],
                 ),
                 const SizedBox(height: 35),
-                const Divider(color: line),
+                const Divider(color: stroke),
                 const SizedBox(height: 19),
                 const Text(
                   '© 2026 EasyBooks. Built for practical bookkeeping.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: muted, fontSize: 12),
+                  style: TextStyle(color: secondaryText, fontSize: 12),
                 ),
               ],
             ),
@@ -727,16 +728,16 @@ class _LandingPageState extends State<LandingPage> {
     return Theme(
       data: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: white,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: EasyBooksTheme.background,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: green,
-          brightness: Brightness.light,
-          surface: white,
+          seedColor: accent,
+          brightness: Brightness.dark,
+          surface: panel,
         ),
       ),
       child: Scaffold(
-        backgroundColor: white,
+        backgroundColor: EasyBooksTheme.background,
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) => Column(
@@ -792,7 +793,7 @@ class _SmallLabel extends StatelessWidget {
   Widget build(BuildContext context) => Text(
         label,
         style: const TextStyle(
-          color: Color(0xFF687773),
+          color: EasyBooksTheme.muted,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
